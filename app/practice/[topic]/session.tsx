@@ -161,7 +161,9 @@ export function Session({
   const nextId = useRef(1);
   const endRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" }), [log.length, popup]);
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [log.length, popup]);
 
   const recorder = useRecorder({ onRecorded: handleRecording });
 

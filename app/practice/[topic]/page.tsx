@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import { listTopicIds, loadQuestions } from "@/lib/bank";
 import { questionAudioFile, questionAudioUrl } from "@/lib/question-audio";
 import { APP_VOICES } from "@/lib/tts";
@@ -13,7 +14,17 @@ export function generateStaticParams() {
     .map((topic) => ({ topic }));
 }
 
-export default async function PracticeTopic({ params }: PageProps<"/practice/[topic]">) {
+// Reading params is URL data, so it sits inside Suspense (Next.js instant
+// navigation). Both topics are prebuilt, so the fallback is rarely seen.
+export default function PracticeTopic({ params }: PageProps<"/practice/[topic]">) {
+  return (
+    <Suspense fallback={null}>
+      <Topic params={params} />
+    </Suspense>
+  );
+}
+
+async function Topic({ params }: { params: PageProps<"/practice/[topic]">["params"] }) {
   const { topic: topicId } = await params;
   const topic = TOPICS[topicId];
   if (!topic) notFound();
