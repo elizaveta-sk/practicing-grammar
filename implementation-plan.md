@@ -36,7 +36,7 @@ Speech-to-text and TTS prices weren't checked here. Phase 1 and Phase 3 compare 
 - [x] 1.4 Add 2–3 providers behind one `transcribe()` function, with a dropdown to switch between them (for testing only)
 - [x] 1.5 Test on Chrome and on iPhone Safari
 - [x] 1.6 **Test:** record ~20 sentences with typical Russian and Japanese speaker mistakes (missing articles, *-s*/*-ed* endings, wrong tense, *I'd* vs *I would*). Write down which provider keeps the mistakes. Try a "transcribe verbatim, do not correct grammar" prompt where the provider supports it.
-- [ ] 1.7 Choose the provider and record the cost per minute
+- [x] 1.7 Choose the provider: **ElevenLabs Scribe v2**. Cost is measured from real usage instead (task 5.6)
 
 **If none keeps the mistakes, stop and rethink before Phase 2.**
 
@@ -86,13 +86,14 @@ Failures that matter for grading. "Hid" = fixed the learner's mistake, so the ap
 - [ ] 5.2 Save session progress (topic, question order, current question) after each question
 - [ ] 5.3 Continue an unfinished session from the home screen
 - [ ] 5.4 24-hour limit after a finished session, checked on the **server**; show "next session available in X hours"
+- [ ] 5.6 Record usage per session: seconds of student audio (speech-to-text), characters spoken (text-to-speech), Claude tokens. Save the totals with the session so real monthly costs can be worked out
 - [ ] 5.5 Write down how to create a learner account in the Supabase dashboard
 
 ## Phase 6: Trial
 - [ ] 6.1 Add the other three grammar-bank files
 - [ ] 6.2 Do a full session yourself on a phone and on a laptop
 - [ ] 6.3 Give accounts to 1–2 students first, then everyone
-- [ ] 6.4 After a week, check the actual costs and any marking mistakes students report
+- [ ] 6.4 After a week, check the actual costs (from the usage saved in 5.6) and any marking mistakes students report
 
 ## Later (v2)
 - Pronunciation checking (needs a pronunciation-scoring service, for example Azure Pronunciation Assessment, plus a separate test like Phase 1)
