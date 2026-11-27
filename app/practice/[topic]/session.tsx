@@ -59,6 +59,18 @@ function OptionalPart({ text, trailing = false }: { text: string; trailing?: boo
   );
 }
 
+// A friendly speech bubble for the word-help tip.
+function ChatIcon() {
+  return (
+    <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white" aria-hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-4">
+        <path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12Z" />
+        <path d="M9 10.5h.01M12 10.5h.01M15 10.5h.01" strokeWidth="2.6" />
+      </svg>
+    </span>
+  );
+}
+
 function Optional({ sentence }: { sentence: string }) {
   const { before, optional, after, at } = splitOptional(sentence);
   if (at === "start") return (<><OptionalPart text={optional} />{after}</>);
@@ -377,9 +389,11 @@ export function Session({
             Words in <span className="opacity-45">grey</span> are optional.
           </li>
         </ol>
-        <p className="rounded-xl bg-blue-50 p-4 text-sm text-black dark:bg-blue-950 dark:text-blue-50">
-          💡 <span className="font-medium">Tip:</span> forgot a word? Say: &ldquo;How do I say this in English… (word in
-          your language)?&rdquo; You can do this any time during the conversation.
+        <p className="flex items-start gap-3 rounded-2xl bg-blue-50 p-4 text-sm text-black dark:bg-blue-950 dark:text-blue-50">
+          <ChatIcon />
+          <span>
+            <span className="font-medium">Tip:</span> forgot a word? Say: &ldquo;How do I say this in English…&rdquo;
+          </span>
         </p>
         <button onClick={start} className="w-full rounded-full bg-blue-600 px-6 py-4 text-lg font-medium text-white">
           Start ({Math.min(SESSION_LENGTH, questions.length)} questions)
@@ -538,7 +552,7 @@ export function Session({
         )}
         {!done && !repeating && (
           <p className="text-center text-xs opacity-60">
-            Forgot a word? Say: &ldquo;How do I say this in English… (x)?&rdquo;
+            Forgot a word? Say: &ldquo;How do I say this in English…&rdquo;
           </p>
         )}
       </footer>
