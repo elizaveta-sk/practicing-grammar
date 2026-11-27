@@ -10,7 +10,7 @@ A voice partner for practising English grammar out loud. You choose a grammar to
 - **Other small mistakes** (articles, prepositions): corrected quietly on screen, without stopping the conversation.
 - **Stuck?** Ask *"Sorry, what?"*, *"What does 'fictional' mean?"* or *"How do I say this in English?"* and it helps without counting it as a mistake.
 
-Made for adult learners (B1–C1). The first topic is the **second conditional**, with more to come.
+Made for adult learners (B1–C1). Topics: **first conditional**, **second conditional** and **present perfect**, with more to come.
 
 **To use it:** open the link in Chrome or Safari (it works on phones too), allow the microphone, pick a voice and a topic, and press **Start**. A session is 10 questions.
 
