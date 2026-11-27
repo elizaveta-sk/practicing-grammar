@@ -3,7 +3,7 @@
 **Please check the "Expected" column.** That is the answer key the checker is graded against.
 Change any label you disagree with. 
 - **Mode:** `main` = answer to a bank question (grammar required) · `followup` = answer to the conversation follow-up (grammar not required) · `repeat` = repeating a correction (the sentence to repeat is in the Question column after `→`)
-- **Expected:** `correct` · `incorrect` (wrong form) · `not_used` (no attempt, e.g. just a noun) · `help` (asked how to say a word; the note's "must include" then checks the suggested word)
+- **Expected:** `correct` · `incorrect` (wrong form) · `not_used` (no attempt, e.g. just a noun) · `say_again` (asked to hear it again) · `help` (asked how to say a word; the note's "must include" then checks the suggested word)
 
 A note can also say `correction must include "…"` to check the corrected sentence, not just the verdict.
 
@@ -63,3 +63,10 @@ Run it with `npm run eval:check`. Results are written to `evals/results/second-c
 | 50 | main | If you could have any job, what job would you like to have? | Hmm, how do I say this... I would be a pilot. | correct | asked, but found the word: judged normally |
 | 51 | main | If you didn't need sleep, how would you spend your nights? | Let me think. I would read books. | correct | thinking aloud is not a help request |
 | 52 | followup | Why would you choose to be a pilot? | Because I, how do you say, I want to see the world from up in the sky, from very high | correct | found a way to say it; follow-up not graded |
+| 53 | main | If you could be any fictional character, who would you be and why? | Sorry, what? | say_again | from a real session (owner): must repeat, not ask something new |
+| 54 | main | If you could work for any company in the world for a week, which one would you choose and why? | Can you repeat the question, please? | say_again |  |
+| 55 | main | If you were invisible for a day, what would you do? | Pardon? | say_again |  |
+| 56 | followup | What would you do there every day? | Sorry, I didn't catch that. Could you say it again? | say_again |  |
+| 57 | repeat | → I would go to the bank. | Sorry, what? | say_again | while repeating a correction |
+| 58 | main | If you were invisible for a day, what would you do? | Sorry, I would go to the bank. | correct | apologises, then answers: judged normally |
+| 59 | main | If you could stay one age forever, what age would it be? | What? Hmm, it would be 30. | correct | surprise, then answers |

@@ -33,6 +33,7 @@ export async function POST(request: Request) {
     if (!/\p{L}/u.test(transcript)) return Response.json({ transcript: "" });
 
     const { result } = await checkAnswer({ topicId, mode, question, answer: transcript, expectedRepeat });
+    if (result.askedToRepeat) return Response.json({ transcript, askedToRepeat: true });
     if (result.wordHelp) return Response.json({ transcript, wordHelp: result.wordHelp });
     return Response.json({
       transcript,

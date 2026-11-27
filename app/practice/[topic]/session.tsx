@@ -27,6 +27,8 @@ type TurnResponse = {
   nextQuestion?: string;
   /** Set when the learner asked how to say something in English. */
   wordHelp?: string;
+  /** "Sorry, what?": say the last line again. */
+  askedToRepeat?: boolean;
 };
 
 type Entry =
@@ -233,6 +235,16 @@ export function Session({ topicId, topicName, questions }: { topicId: string; to
     setChecking(false);
 
     if (!data.transcript) return setTurnError("I didn't catch that. Please try again.");
+
+    // "Sorry, what?": say the last line again (the correction being practised,
+    // or the question). Not graded and doesn't use up a try.
+    if (data.askedToRepeat) {
+      addEntry({ who: "learner", transcript: data.transcript, wrong: false });
+      if (popup?.kind === "correction") return speak(popup.sentence);
+      const lastBot = [...log].reverse().find((e) => e.who === "bot");
+      if (lastBot?.who === "bot" && lastBot.audioUrl) return play(lastBot.audioUrl);
+      return speak(currentQuestion);
+    }
 
     // "How do I say this in English?": give the word, then the same question
     // again. Not graded and doesn't use up a try.

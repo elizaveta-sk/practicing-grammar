@@ -60,7 +60,7 @@ async function main() {
 
   // Passes when the verdict matches and, if the row asks for it, the correction has the right words.
   // A word-help turn counts as the verdict "help"; its must-include check is on the suggested word.
-  const verdictOf = (o: Outcome) => (o.got?.wordHelp ? "help" : o.got?.verdict);
+  const verdictOf = (o: Outcome) => (o.got?.askedToRepeat ? "say_again" : o.got?.wordHelp ? "help" : o.got?.verdict);
   const checked = (o: Outcome) => (o.got?.wordHelp ? o.got.wordHelp : (o.got?.correctedAnswer ?? ""));
   const ok = (o: Outcome) =>
     verdictOf(o) === o.expected &&

@@ -22,6 +22,9 @@ export type Mode = "main" | "followup" | "repeat";
 // Field order matters: the model fills these in order, so it names the
 // learner's phrase and the exact target mistake before deciding the verdict.
 const CheckResult = z.object({
+  askedToRepeat: z
+    .boolean()
+    .describe("True when the learner only asked to hear the question again (see SAY IT AGAIN)."),
   wordHelp: z
     .string()
     .describe(
@@ -67,6 +70,8 @@ TARGET GRAMMAR: ${topic.name}
 ${topic.rule}
 Common wrong attempts (these are "incorrect", not "not_used"):
 ${topic.commonErrors.map((e) => `- ${e}`).join("\n")}
+
+SAY IT AGAIN: if the learner didn't answer but asked to hear it again or said they didn't understand ("Sorry, what?", "Pardon?", "Can you repeat the question?", "Sorry, could you say that again?", "I didn't understand"), set askedToRepeat true; the other fields don't matter. If they apologise or hesitate and then answer ("Sorry, I would go to the bank"), askedToRepeat is false and you judge the answer.
 
 WORD HELP: learners sometimes get stuck on a word and say things like "how do I say this in English?", "how do you call it?", "what's the word?", then describe it ("the person who fixes cars") or say it in Russian or Japanese (it may appear in Cyrillic, Japanese script, or as odd transliterated letters). If they did NOT manage to say the word themselves, set wordHelp to the natural English word or short phrase that fits what they meant ("a mechanic", "to give up smoking"), with no grammar of the answer in it. A description given in place of the word still means they need it: "I would be a, how do you call it, a person who flies planes" → wordHelp "a pilot". If they asked but then found the word anyway ("how do I say… a pilot"), wordHelp is "" and you judge the answer normally. When wordHelp is set, the other fields don't matter: verdict "correct", correctedAnswer "", nextQuestion "".
 
@@ -129,8 +134,9 @@ export async function checkAnswer(input: CheckInput) {
 
   const result = response.parsed_output;
   result.wordHelp = result.wordHelp.trim();
-  // A word-help turn isn't graded: the learner answers the same question again.
-  if (result.wordHelp) return { result, usage: response.usage };
+  // Asking to hear it again, or for a word, isn't graded: the learner answers the same question again.
+  if (result.askedToRepeat) result.wordHelp = "";
+  if (result.askedToRepeat || result.wordHelp) return { result, usage: response.usage };
   // The rules say no question in these modes. Enforce it rather than trust it.
   if (input.mode !== "main") result.nextQuestion = "";
   // Grammar isn't required in follow-ups, so "not used" there means fine.
