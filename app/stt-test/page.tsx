@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { wordDiff, type DiffPart } from "./diff";
+import { wordDiff, type DiffPart } from "@/lib/diff";
 
 type Provider = { id: string; label: string };
 type Result = { provider: string; label: string; text: string; ms: number; error?: string };

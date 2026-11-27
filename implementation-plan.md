@@ -67,19 +67,20 @@ Failures that matter for grading. "Hid" = fixed the learner's mistake, so the ap
 ## Phase 3: Voice
 - [x] 3.1 Choose the TTS provider and voice (comparison page: `/tts-test`). **ElevenLabs Flash v2.5**, speed 1.0 (natural, ~0.6 s per line vs ~2.3 s for OpenAI). Learners choose a voice: **Jessica** (American, default) or **Daniel** (British)
 - [x] 3.2 Script: generate audio for every bank question once and save it as files (`npm run audio:generate`, files in `public/audio/`)
-- [ ] 3.3 Server route for live TTS (nudges, follow-ups, corrected sentences)
-- [ ] 3.4 Audio player in the page; play automatically when the browser allows it, with a fallback "tap to play" button for iPhone
-- [ ] 3.5 **Show text** button for questions
+- [x] 3.3 Server route for live TTS (nudges, follow-ups, corrected sentences)
+- [x] 3.4 Audio player in the page; play automatically when the browser allows it, with a fallback "tap to play" button for iPhone
+- [x] 3.5 **Show text** button for questions
 
-## Phase 4: The practice session
-- [ ] 4.1 Topic choice screen, based on the files in `grammar-bank/`
-- [ ] 4.2 Pick 10 shuffled questions when a session starts
-- [ ] 4.3 Session state machine: question → answer → (nudge loop | correct-and-repeat ×2) → follow-up → (correct-and-repeat ×2) → next question
-- [ ] 4.4 Correction pop-up (text + spoken) and "Remember to use…" pop-up
-- [ ] 4.5 Show silent fixes in the transcript (e.g. the corrected word highlighted)
-- [ ] 4.6 Progress indicator (Question 3 of 10)
-- [ ] 4.7 "Session complete" screen
-- [ ] 4.8 Handle errors: microphone blocked, empty recording, provider timeout (offer "try again" instead of breaking)
+## Phase 4: The practice session (`/practice`)
+Built and checked with recorded test answers; **owner's full run-through on laptop + iPhone still to do.**
+- [x] 4.1 Topic choice screen, based on the files in `grammar-bank/`
+- [x] 4.2 Pick 10 shuffled questions when a session starts
+- [x] 4.3 Session state machine: question → answer → (nudge loop | correct-and-repeat ×2) → follow-up → (correct-and-repeat ×2) → next question
+- [x] 4.4 Correction pop-up (text + spoken) and "Remember to use…" pop-up
+- [x] 4.5 Show silent fixes in the transcript (e.g. the corrected word highlighted)
+- [x] 4.6 Progress indicator (Question 3 of 10)
+- [x] 4.7 "Session complete" screen
+- [x] 4.8 Handle errors: microphone blocked, empty recording, provider timeout (offer "try again" instead of breaking)
 
 ## Phase 5: Accounts, limit, resume
 - [ ] 5.1 Login page with Supabase email and password; protect every page and server route
