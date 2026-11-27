@@ -32,6 +32,13 @@ export const VOICES: Voice[] = [
   { id: "oa-ash", provider: "openai", name: "Ash", accent: "US", gender: "m", providerVoice: "ash" },
 ];
 
+// The voices learners can choose in the app (owner's choice after comparing
+// on /tts-test). The first is the default.
+export const APP_VOICES = ["el-jessica", "el-daniel"] as const;
+export type AppVoiceId = (typeof APP_VOICES)[number];
+export const APP_MODEL: ElevenModel = "eleven_flash_v2_5";
+export const APP_SPEED = 1;
+
 // OpenAI's gpt-4o-mini-tts takes speaking instructions; ElevenLabs doesn't.
 const TEACHER_STYLE =
   "Speak clearly and naturally, like a friendly English teacher chatting with an intermediate learner. " +

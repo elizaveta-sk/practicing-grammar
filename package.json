@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "eval:check": "tsx --env-file=.env.local scripts/eval-check.ts"
+    "eval:check": "tsx --env-file=.env.local scripts/eval-check.ts",
+    "audio:generate": "tsx --conditions=react-server --env-file=.env.local scripts/generate-question-audio.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.14.0",

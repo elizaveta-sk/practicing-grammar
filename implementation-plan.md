@@ -65,8 +65,8 @@ Failures that matter for grading. "Hid" = fixed the learner's mistake, so the ap
 - [x] 2.7 Log token use per call and calculate the real cost per session
 
 ## Phase 3: Voice
-- [ ] 3.1 Choose the TTS provider and voice (comparison page: `/tts-test`). Provider: **ElevenLabs Flash v2.5** (chosen: natural, ~0.6 s per line vs ~2.3 s for OpenAI). Voice and speed: to choose
-- [ ] 3.2 Script: generate audio for every bank question once and save it as files
+- [x] 3.1 Choose the TTS provider and voice (comparison page: `/tts-test`). **ElevenLabs Flash v2.5**, speed 1.0 (natural, ~0.6 s per line vs ~2.3 s for OpenAI). Learners choose a voice: **Jessica** (American, default) or **Daniel** (British)
+- [x] 3.2 Script: generate audio for every bank question once and save it as files (`npm run audio:generate`, files in `public/audio/`)
 - [ ] 3.3 Server route for live TTS (nudges, follow-ups, corrected sentences)
 - [ ] 3.4 Audio player in the page; play automatically when the browser allows it, with a fallback "tap to play" button for iPhone
 - [ ] 3.5 **Show text** button for questions
