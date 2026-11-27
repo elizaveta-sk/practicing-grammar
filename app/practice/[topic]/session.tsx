@@ -550,11 +550,6 @@ export function Session({
             {buttonLabel}
           </button>
         )}
-        {!done && !repeating && (
-          <p className="text-center text-xs opacity-60">
-            Forgot a word? Say: &ldquo;How do I say this in English…&rdquo;
-          </p>
-        )}
       </footer>
     </main>
   );
