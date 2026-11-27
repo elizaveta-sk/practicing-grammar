@@ -378,8 +378,8 @@ export function Session({
           </li>
         </ol>
         <p className="rounded-xl bg-blue-50 p-4 text-sm text-black dark:bg-blue-950 dark:text-blue-50">
-          💡 <span className="font-medium">Tip:</span> if you can&apos;t remember a word, just ask: &ldquo;How do you say
-          (…) in English?&rdquo;
+          💡 <span className="font-medium">Tip:</span> forgot a word? Say: &ldquo;How do I say this in English… (word in
+          your language)?&rdquo; You can do this any time during the conversation.
         </p>
         <button onClick={start} className="w-full rounded-full bg-blue-600 px-6 py-4 text-lg font-medium text-white">
           Start ({Math.min(SESSION_LENGTH, questions.length)} questions)
@@ -535,6 +535,11 @@ export function Session({
           >
             {buttonLabel}
           </button>
+        )}
+        {!done && !repeating && (
+          <p className="text-center text-xs opacity-60">
+            Forgot a word? Say: &ldquo;How do I say this in English… (x)?&rdquo;
+          </p>
         )}
       </footer>
     </main>
