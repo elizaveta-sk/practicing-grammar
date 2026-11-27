@@ -38,6 +38,9 @@ export async function POST(request: Request) {
     if (result.meaningHelp) return Response.json({ transcript, meaningHelp: result.meaningHelp });
     if (result.wordHelp) return Response.json({ transcript, wordHelp: result.wordHelp });
 
+    // After a nudge there's no follow-up (the nudge was the extra question).
+    if (form.get("afterNudge") === "1" && result.verdict !== "not_used") result.nextQuestion = "";
+
     // A second model checks the next question fits the conversation (owner's request).
     if (result.nextQuestion) {
       const review = await reviewQuestion({

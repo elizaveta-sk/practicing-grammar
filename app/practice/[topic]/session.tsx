@@ -136,6 +136,8 @@ export function Session({
   const [repeatTarget, setRepeatTarget] = useState("");
   const [repeatTries, setRepeatTries] = useState(0);
   const [pendingFollowUp, setPendingFollowUp] = useState("");
+  // After a nudge, that question was the extra conversation, so no follow-up.
+  const [nudged, setNudged] = useState(false);
   const [log, setLog] = useState<Entry[]>([]);
   const [shown, setShown] = useState<Set<number>>(new Set());
   const [popup, setPopup] = useState<Popup>(null);
@@ -227,6 +229,7 @@ export function Session({
     const q = list[i];
     setQIndex(i);
     setStage("main");
+    setNudged(false);
     setCurrentQuestion(q.text);
     setPopup(null);
     addBot(q.text, q.audio[voice]);
@@ -271,6 +274,7 @@ export function Session({
     form.append("mode", mode);
     form.append("question", currentQuestion);
     if (mode === "repeat") form.append("expectedRepeat", repeatTarget);
+    if (mode === "main" && nudged) form.append("afterNudge", "1");
 
     setChecking(true);
     let data: TurnResponse;
@@ -323,14 +327,15 @@ export function Session({
     addEntry({ who: "learner", transcript: data.transcript, corrected, wrong: data.verdict === "incorrect" });
 
     if (stage === "main") {
-      if (data.verdict === "correct") return goFollowUp(data.nextQuestion ?? "");
+      if (data.verdict === "correct") return nudged ? nextBank() : goFollowUp(data.nextQuestion ?? "");
       if (data.verdict === "not_used") {
         const nudge = data.nextQuestion || currentQuestion;
+        setNudged(true);
         setPopup({ kind: "nudge", text: nudgeText });
         setCurrentQuestion(nudge);
         return addBot(nudge);
       }
-      setPendingFollowUp(data.nextQuestion ?? "");
+      setPendingFollowUp(nudged ? "" : (data.nextQuestion ?? ""));
       return showCorrection(data.correctedAnswer || repeatTarget, "repeat");
     }
 

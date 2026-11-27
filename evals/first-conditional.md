@@ -46,3 +46,6 @@ Run it with `npm run eval:check -- first-conditional`.
 | 38 | main | If there is no coffee at your home tomorrow morning, what will you do? | I drink tea. It's okay for me | incorrect | from a real session (owner): only the answer needs will, the general fact stays present; correction must include "It's okay for me" |
 | 39 | main | What will you eat if you are hungry when you get home tonight? | I'll make pasta. I love Italian food. | correct | extra opinion stays present simple; correction must include "I love Italian food" |
 | 40 | main | What will you eat if you are hungry when you get home tonight? | I'll make pasta if I will be hungry. | incorrect | learner's own if-clause has "will": never optional; correction must include "if I am hungry" |
+| 41 | main | What will you do if you get a poor grade on your next English test? | I practiced some more, I think. What else? | incorrect | from a real session (owner): a question added at the end ("What else?") doesn't make it not_used |
+| 42 | main | What will you do if it rains this weekend? | I stayed at home and watched films. I don't know. | incorrect | added comment ("I don't know") doesn't make it not_used |
+| 43 | main | What will you do if it rains this weekend? | Netflix, I guess. Is that okay? | not_used | noun answer with an added question is still not_used |

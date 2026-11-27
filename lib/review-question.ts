@@ -39,6 +39,7 @@ A good question:
 - makes sense and is not obvious or repetitive: NOT "Where will you lie down when you feel better?" (you lie down because you feel bad), and nothing the learner already answered;
 - is not too personal (no exact money, health details, intimate relationship details);
 - MUST use ${topic.formHint ?? `the ${topic.name}, like "${topic.examples.followUp}"`}. A question in another form must be rewritten;
+- for a NUDGE: can only be answered with a verb (what they would/will DO), not with a noun or place: NOT "Where would you want it to be?" or "What will you watch?";
 - has at most 15 words, everyday vocabulary, and no grammar terms.
 
 If the proposed question is good, verdict "ok" and return it unchanged. Otherwise verdict "rewrite" and write a better one that still continues this conversation.`;
