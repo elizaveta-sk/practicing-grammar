@@ -466,7 +466,7 @@ export function Session({
       <footer className="sticky bottom-0 space-y-3 bg-background pb-6 pt-2">
         {popup?.kind === "correction" && (
           <div className="rounded-xl border-2 border-amber-500 bg-amber-50 p-4 text-black dark:bg-amber-950 dark:text-amber-50">
-            <p className="text-sm font-medium">Say it like this:</p>
+            <p className="text-sm font-medium">Try this:</p>
             <p className="mt-1 text-lg">
               <Optional sentence={popup.sentence} />
             </p>
