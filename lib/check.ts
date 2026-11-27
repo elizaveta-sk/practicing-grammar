@@ -22,6 +22,11 @@ export type Mode = "main" | "followup" | "repeat";
 // Field order matters: the model fills these in order, so it names the
 // learner's phrase and the exact target mistake before deciding the verdict.
 const CheckResult = z.object({
+  wordHelp: z
+    .string()
+    .describe(
+      'The English word or short phrase the learner is looking for, when they asked for help finding it (see WORD HELP). "" otherwise.',
+    ),
   targetPhrase: z
     .string()
     .describe('The part of the answer where the target grammar is or should be, e.g. "I will buy". "" if none.'),
@@ -62,6 +67,8 @@ TARGET GRAMMAR: ${topic.name}
 ${topic.rule}
 Common wrong attempts (these are "incorrect", not "not_used"):
 ${topic.commonErrors.map((e) => `- ${e}`).join("\n")}
+
+WORD HELP: learners sometimes get stuck on a word and say things like "how do I say this in English?", "how do you call it?", "what's the word?", then describe it ("the person who fixes cars") or say it in Russian or Japanese (it may appear in Cyrillic, Japanese script, or as odd transliterated letters). If they did NOT manage to say the word themselves, set wordHelp to the natural English word or short phrase that fits what they meant ("a mechanic", "to give up smoking"), with no grammar of the answer in it. A description given in place of the word still means they need it: "I would be a, how do you call it, a person who flies planes" → wordHelp "a pilot". If they asked but then found the word anyway ("how do I say… a pilot"), wordHelp is "" and you judge the answer normally. When wordHelp is set, the other fields don't matter: verdict "correct", correctedAnswer "", nextQuestion "".
 
 VERDICT, about the target grammar only:
 - "correct": the learner used the target grammar correctly. Other mistakes (articles, prepositions, plurals, word choice, a missing "to" after "like") do not change this verdict; fix them silently in correctedAnswer.
@@ -121,6 +128,9 @@ export async function checkAnswer(input: CheckInput) {
   if (!response.parsed_output) throw new Error(`No parsable result (stop_reason: ${response.stop_reason})`);
 
   const result = response.parsed_output;
+  result.wordHelp = result.wordHelp.trim();
+  // A word-help turn isn't graded: the learner answers the same question again.
+  if (result.wordHelp) return { result, usage: response.usage };
   // The rules say no question in these modes. Enforce it rather than trust it.
   if (input.mode !== "main") result.nextQuestion = "";
   // Grammar isn't required in follow-ups, so "not used" there means fine.

@@ -59,9 +59,12 @@ async function main() {
   outcomes.sort((a, b) => Number(a.n) - Number(b.n));
 
   // Passes when the verdict matches and, if the row asks for it, the correction has the right words.
+  // A word-help turn counts as the verdict "help"; its must-include check is on the suggested word.
+  const verdictOf = (o: Outcome) => (o.got?.wordHelp ? "help" : o.got?.verdict);
+  const checked = (o: Outcome) => (o.got?.wordHelp ? o.got.wordHelp : (o.got?.correctedAnswer ?? ""));
   const ok = (o: Outcome) =>
-    o.got?.verdict === o.expected &&
-    (!o.mustInclude || o.got.correctedAnswer.toLowerCase().replace(/[’‘]/g, "'").includes(o.mustInclude.toLowerCase()));
+    verdictOf(o) === o.expected &&
+    (!o.mustInclude || checked(o).toLowerCase().replace(/[’‘]/g, "'").includes(o.mustInclude.toLowerCase()));
   const passed = outcomes.filter(ok);
   const cost = (tokensIn * PRICE_IN + tokensOut * PRICE_OUT) / 1e6;
   const avgMs = Math.round(outcomes.reduce((s, o) => s + o.ms, 0) / outcomes.length);
@@ -73,8 +76,8 @@ async function main() {
   const cell = (s: string) => s.replace(/\|/g, "\\|");
   const rows = outcomes.map((o) => {
     const mark = ok(o) ? "✅" : "❌";
-    const got = o.error ? `ERROR: ${o.error}` : o.got!.verdict;
-    return `| ${o.n} | ${mark} | ${o.mode} | ${cell(o.answer)} | ${o.expected} | ${cell(got)} | ${cell(o.got?.correctedAnswer ?? "")} | ${cell(o.got?.nextQuestion ?? "")} |`;
+    const got = o.error ? `ERROR: ${o.error}` : verdictOf(o)!;
+    return `| ${o.n} | ${mark} | ${o.mode} | ${cell(o.answer)} | ${o.expected} | ${cell(got)} | ${cell(checked(o))} | ${cell(o.got?.nextQuestion ?? "")} |`;
   });
   const report = [
     `# Checker results: ${topicId}`,
@@ -93,7 +96,7 @@ async function main() {
 
   console.log(summary);
   for (const o of outcomes.filter((o) => !ok(o))) {
-    const why = o.mustInclude && o.got?.verdict === o.expected ? `correction "${o.got.correctedAnswer}" lacks "${o.mustInclude}"` : `expected ${o.expected}, got ${o.error ?? o.got?.verdict}`;
+    const why = o.mustInclude && verdictOf(o) === o.expected ? `"${checked(o)}" lacks "${o.mustInclude}"` : `expected ${o.expected}, got ${o.error ?? verdictOf(o)}`;
     console.log(`  ❌ #${o.n} [${o.mode}] "${o.answer}": ${why}`);
   }
   console.log(`Full report: evals/results/${topicId}.md`);

@@ -3,7 +3,7 @@
 **Please check the "Expected" column.** That is the answer key the checker is graded against.
 Change any label you disagree with. 
 - **Mode:** `main` = answer to a bank question (grammar required) · `followup` = answer to the conversation follow-up (grammar not required) · `repeat` = repeating a correction (the sentence to repeat is in the Question column after `→`)
-- **Expected:** `correct` · `incorrect` (wrong form) · `not_used` (no attempt, e.g. just a noun)
+- **Expected:** `correct` · `incorrect` (wrong form) · `not_used` (no attempt, e.g. just a noun) · `help` (asked how to say a word; the note's "must include" then checks the suggested word)
 
 A note can also say `correction must include "…"` to check the corrected sentence, not just the verdict.
 
@@ -53,6 +53,13 @@ Run it with `npm run eval:check`. Results are written to `evals/results/second-c
 | 40 | main | If you could meet anyone, dead or alive, who would you choose to meet? | I would meet Barack Obama. | correct | short answer; correction must include "(If I could meet" |
 | 41 | main | If you could have any job, what job would you like to have? | If I had any job, I would be a pilot. | incorrect | question's "could" dropped (same rule as #38); correction must include "could have" |
 | 42 | main | If you were the world's best at something, what would you like to be the world's best at? | I would like to be the best at public speaking. | correct | owner's example: if-clause shown in brackets as optional; correction must include "(If I were" |
-| 43 | main | If you were invisible for a day, what would you do? | If I was invisible, I would go to the bank. | correct | learner said the if-clause, so no brackets; correction must include "If I was invisible" |
+| 43 | main | If you were invisible for a day, what would you do? | If I was invisible, I would go to the bank. | correct | learner said the if-clause, so no brackets ("was" or "were" both fine); correction must include "invisible, I would go" |
 | 44 | repeat | → (If I could meet anyone, dead or alive,) I would meet Barack Obama. | I would meet Barack Obama. | correct | bracketed part is optional when repeating |
 | 45 | repeat | → (If I could meet anyone, dead or alive,) I would meet Barack Obama. | If I could meet anyone, I will meet Barack Obama. | incorrect | |
+| 46 | main | If you could have any job, what job would you like to have? | Mm, how do I say this in English? The person who repairs cars. I would be that. | help | described in English; correction must include "mechanic" |
+| 47 | main | If you could have any job, what job would you like to have? | I would be a, how do you call it, a person who flies planes | help | correction must include "pilot" |
+| 48 | main | If you could live in any city, town, or village in the world, where would you choose? | I would choose a small, как это, деревня near the sea | help | Russian word in Cyrillic; correction must include "village" |
+| 49 | main | If you could have any job, what job would you like to have? | I would like to be a 医者 | help | Japanese word; correction must include "doctor" |
+| 50 | main | If you could have any job, what job would you like to have? | Hmm, how do I say this... I would be a pilot. | correct | asked, but found the word: judged normally |
+| 51 | main | If you didn't need sleep, how would you spend your nights? | Let me think. I would read books. | correct | thinking aloud is not a help request |
+| 52 | followup | Why would you choose to be a pilot? | Because I, how do you say, I want to see the world from up in the sky, from very high | correct | found a way to say it; follow-up not graded |

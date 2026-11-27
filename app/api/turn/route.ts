@@ -29,9 +29,11 @@ export async function POST(request: Request) {
   try {
     const { text: transcript } = await transcribe(STT_PROVIDER, audio);
     // Silence or noise: let the learner try again without using up a try.
-    if (!transcript.replace(/[^a-z]/gi, "")) return Response.json({ transcript: "" });
+    // Any script counts as speech (a Russian or Japanese word asks for word help).
+    if (!/\p{L}/u.test(transcript)) return Response.json({ transcript: "" });
 
     const { result } = await checkAnswer({ topicId, mode, question, answer: transcript, expectedRepeat });
+    if (result.wordHelp) return Response.json({ transcript, wordHelp: result.wordHelp });
     return Response.json({
       transcript,
       verdict: result.verdict,

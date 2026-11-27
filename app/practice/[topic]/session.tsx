@@ -20,7 +20,14 @@ const MAX_REPEATS = 2;
 
 type Stage = "main" | "repeat" | "followup" | "followupRepeat";
 type Verdict = "correct" | "incorrect" | "not_used";
-type TurnResponse = { transcript: string; verdict?: Verdict; correctedAnswer?: string; nextQuestion?: string };
+type TurnResponse = {
+  transcript: string;
+  verdict?: Verdict;
+  correctedAnswer?: string;
+  nextQuestion?: string;
+  /** Set when the learner asked how to say something in English. */
+  wordHelp?: string;
+};
 
 type Entry =
   | { id: number; who: "bot"; text: string; audioUrl?: string }
@@ -31,6 +38,7 @@ type NewEntry = Entry extends infer E ? (E extends Entry ? Omit<E, "id"> : never
 type Popup =
   | { kind: "correction"; sentence: string; triesLeft: number }
   | { kind: "nudge"; text: string }
+  | { kind: "word"; phrase: string; previous: Popup }
   | null;
 
 // "(If I could meet anyone,) I would meet…": the bracketed start is optional,
@@ -225,6 +233,16 @@ export function Session({ topicId, topicName, questions }: { topicId: string; to
     setChecking(false);
 
     if (!data.transcript) return setTurnError("I didn't catch that. Please try again.");
+
+    // "How do I say this in English?": give the word, then the same question
+    // again. Not graded and doesn't use up a try.
+    if (data.wordHelp) {
+      addEntry({ who: "learner", transcript: data.transcript, wrong: false });
+      setPopup((p) => ({ kind: "word", phrase: data.wordHelp!, previous: p?.kind === "word" ? p.previous : p }));
+      speak(`You can say: ${data.wordHelp}.`);
+      return;
+    }
+    if (popup?.kind === "word") setPopup(popup.previous);
     const corrected = data.correctedAnswer && norm(data.correctedAnswer) !== norm(data.transcript) ? data.correctedAnswer : undefined;
     addEntry({ who: "learner", transcript: data.transcript, corrected, wrong: data.verdict === "incorrect" });
 
@@ -295,8 +313,10 @@ export function Session({ topicId, topicName, questions }: { topicId: string; to
             ? "● Say it again"
             : "● Answer";
 
+  // No full-height layout: the Answer button sits right under the conversation
+  // and moves down as it grows, then sticks to the bottom once the screen is full.
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-xl flex-col px-4">
+    <main className="mx-auto w-full max-w-xl px-4">
       <header className="sticky top-0 z-10 space-y-2 bg-background py-3">
         <div className="flex items-center justify-between text-sm">
           <Link href="/practice" className="underline opacity-70">
@@ -315,10 +335,10 @@ export function Session({ topicId, topicName, questions }: { topicId: string; to
         </div>
       </header>
 
-      <ol className="flex-1 space-y-3 py-4">
+      <ol className="space-y-3 py-4">
         {log.map((e) =>
           e.who === "bot" ? (
-            <li key={e.id} className="mr-10 rounded-2xl rounded-tl-sm bg-current/5 px-4 py-3">
+            <li key={e.id} className="entry-in mr-10 rounded-2xl rounded-tl-sm bg-current/5 px-4 py-3">
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => (e.audioUrl ? play(e.audioUrl) : speak(e.text))}
@@ -337,7 +357,7 @@ export function Session({ topicId, topicName, questions }: { topicId: string; to
               </div>
             </li>
           ) : e.who === "learner" ? (
-            <li key={e.id} className="ml-10 rounded-2xl rounded-tr-sm border border-current/15 px-4 py-3">
+            <li key={e.id} className="entry-in ml-10 rounded-2xl rounded-tr-sm border border-current/15 px-4 py-3">
               <p>{e.transcript}</p>
               {e.corrected && (
                 <p
@@ -351,7 +371,7 @@ export function Session({ topicId, topicName, questions }: { topicId: string; to
               )}
             </li>
           ) : (
-            <li key={e.id} className="text-center text-sm opacity-70">
+            <li key={e.id} className="entry-in text-center text-sm opacity-70">
               {e.text}
             </li>
           ),
@@ -373,6 +393,18 @@ export function Session({ topicId, topicName, questions }: { topicId: string; to
               <span className="opacity-70">
                 {popup.triesLeft} {popup.triesLeft === 1 ? "try" : "tries"} left
               </span>
+            </div>
+          </div>
+        )}
+        {popup?.kind === "word" && (
+          <div className="rounded-xl border-2 border-violet-500 bg-violet-50 p-4 text-black dark:bg-violet-950 dark:text-violet-50">
+            <p className="text-sm font-medium">💬 In English you can say:</p>
+            <p className="mt-1 text-lg font-semibold">{popup.phrase}</p>
+            <div className="mt-2 flex items-center justify-between text-sm">
+              <button onClick={() => speak(`You can say: ${popup.phrase}.`)} className="underline">
+                🔊 Listen again
+              </button>
+              <span className="opacity-70">Now try your answer again</span>
             </div>
           </div>
         )}
