@@ -28,6 +28,37 @@ export type Topic = {
   optionalStart?: (question: string) => string;
 };
 
+// Speaking as the learner: "you" -> "I"/"me", "your" -> "my", and "I" -> "you"
+// ("if I pay for your gym" -> "if you pay for my gym").
+const SWAP: Record<string, string> = {
+  your: "my", yours: "mine", yourself: "myself", "you're": "I'm",
+  my: "your", mine: "yours", myself: "yourself", me: "you", "i'm": "you're",
+};
+function asLearner(clause: string) {
+  let prev = "";
+  return clause.replace(/\b(you're|i'm|yourself|yours|your|you|myself|mine|my|me|i|are|am)\b/gi, (word, _w, offset) => {
+    const lower = word.toLowerCase();
+    const before = clause.slice(0, offset).trimEnd();
+    const subject = /(^|\b(if|when|and|that|so|or|because))$|,$/i.test(before);
+    let out: string;
+    if (lower === "you") out = subject ? "I" : "me";
+    else if (lower === "i") out = "you";
+    else if (lower === "are") out = prev === "you" ? "am" : word;
+    else if (lower === "am") out = prev === "i" ? "are" : word;
+    else out = SWAP[lower] ?? word;
+    prev = lower;
+    return out;
+  });
+}
+
+/** The question's if-clause, wherever it is, said by the learner: "If I am hungry when I get home tonight". */
+export function ifClauseFor(question: string) {
+  const m = question.match(/\bif\b[^,?]*/i);
+  if (!m) return "";
+  const clause = asLearner(m[0].trim());
+  return clause.charAt(0).toUpperCase() + clause.slice(1);
+}
+
 export const TOPICS: Record<string, Topic> = {
   "second-conditional": {
     id: "second-conditional",
@@ -66,16 +97,41 @@ export const TOPICS: Record<string, Topic> = {
       "best at public speaking.\" The brackets mean it's optional, so this does NOT make the answer incorrect. " +
       "If the learner said an if-clause themselves, keep it (corrected if needed) with no brackets.",
     // Bank questions start "If you …, <question>": turn that into the learner's if-clause.
-    optionalStart: (question) => {
-      const m = question.match(/^(if you [^,?]+),/i);
-      if (!m) return "";
-      return m[1]
-        .replace(/\byou\b/gi, "I")
-        .replace(/\byour\b/gi, "my")
-        .replace(/\byourself\b/gi, "myself")
-        .replace(/^if/i, "If");
-    },
+    optionalStart: ifClauseFor,
   },
+};
+
+TOPICS["first-conditional"] = {
+  id: "first-conditional",
+  name: "First conditional",
+  rule:
+    "Real or likely situations in the future. Result clause: will/'ll + base verb (\"I will eat\", \"I'll call\"). " +
+    "These also count as correct (owner's decision): be going to + verb (\"I'm going to call\"), might / may / can + " +
+    "base verb (\"I might stay home\", \"I can go to the gym\"). Condition clause, if the learner includes one: " +
+    "if + present simple (\"if I'm hungry\", \"if it rains\", \"if my ex calls me\"). A short answer with only the " +
+    "result clause (\"I'll make pasta.\") fully counts as correct use. The questions need a future form: any answer " +
+    "with a verb but without will / going to / might / may / can in the result is incorrect. Mistakes AFTER a " +
+    "correct \"will + verb\" are not target mistakes: \"I'll go to shop\" is correct (the missing \"the\" is " +
+    "fixed silently).",
+  commonErrors: [
+    "would instead of will (\"I would eat pasta\")",
+    "present simple instead of will (\"I eat pasta\", \"I call a doctor\")",
+    "will + -ing / past form / to (\"I will eating\", \"I will ate\", \"I will to eat\")",
+    "will in the if-clause (\"if I will be hungry\", \"if it will be sunny\")",
+    "past tense in the if-clause (\"if I was hungry, I will\")",
+  ],
+  examples: {
+    followUp: "What will you cook first?",
+    nudge: "And what will you do with it?",
+    followupWrong: '"What will you cook first?" → "I would cook pasta." / "I cook pasta."',
+    noRepeat: '"What will you do if you suddenly get a headache?" → "I\'ll take a pill."',
+  },
+  correctionStyle:
+    "If the learner left out the if-clause, start correctedAnswer with the if-clause in round brackets, built " +
+    "from the question and said by the learner, then their result clause: \"(If I am hungry when I get home " +
+    "tonight,) I'll make pasta.\" The brackets mean it's optional, so this does NOT make the answer incorrect. " +
+    "If the learner said an if-clause themselves, keep it (corrected if needed) with no brackets.",
+  optionalStart: ifClauseFor,
 };
 
 export function getTopic(id: string) {
