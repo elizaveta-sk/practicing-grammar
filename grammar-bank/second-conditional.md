@@ -1,5 +1,5 @@
 If you could stay one age forever, what age would it be?
-If you meet anyone, dead or alive, who would you choose to meet?
+If you could meet anyone, dead or alive, who would you choose to meet?
 If you were the world’s best at something, what would you like to be the world’s best at?
 If you could travel in time, would you prefer to see the future or the past?
 If you could have any job, what job would you like to have?
