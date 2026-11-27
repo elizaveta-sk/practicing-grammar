@@ -80,6 +80,24 @@ function Corrected({ transcript, sentence }: { transcript: string; sentence: str
   );
 }
 
+// Errors don't always come back as JSON (e.g. the live site's "Not found"
+// while practice is switched off, or the host's own error pages), and
+// Safari's JSON error ("The string did not match the expected pattern")
+// means nothing to a learner. Read the text first and explain what we can.
+async function readTurnResponse(res: Response): Promise<TurnResponse> {
+  const body = await res.text();
+  let json: (TurnResponse & { error?: string }) | null = null;
+  try {
+    json = JSON.parse(body);
+  } catch {}
+  if (res.ok && json) return json;
+  if (json?.error) throw new Error(json.error);
+  if (res.status === 404) throw new Error("Practice is switched off on this site at the moment.");
+  if (res.status === 413) throw new Error("That recording was too long. Try a shorter answer.");
+  if (res.status === 504 || res.status === 408) throw new Error("Checking took too long.");
+  throw new Error(`Something went wrong (error ${res.status}).`);
+}
+
 function shuffle<T>(items: T[]) {
   const a = [...items];
   for (let i = a.length - 1; i > 0; i--) {
@@ -237,8 +255,7 @@ export function Session({ topicId, topicName, questions }: { topicId: string; to
     let data: TurnResponse;
     try {
       const res = await fetch("/api/turn", { method: "POST", body: form });
-      data = await res.json();
-      if (!res.ok) throw new Error((data as { error?: string }).error);
+      data = await readTurnResponse(res);
     } catch (e) {
       setChecking(false);
       return setTurnError(`${e instanceof Error && e.message ? e.message : "Connection problem."} Please try again.`);
