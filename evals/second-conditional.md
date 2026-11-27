@@ -5,6 +5,8 @@ Change any label you disagree with.
 - **Mode:** `main` = answer to a bank question (grammar required) · `followup` = answer to the conversation follow-up (grammar not required) · `repeat` = repeating a correction (the sentence to repeat is in the Question column after `→`)
 - **Expected:** `correct` · `incorrect` (wrong form) · `not_used` (no attempt, e.g. just a noun)
 
+A note can also say `correction must include "…"` to check the corrected sentence, not just the verdict.
+
 Run it with `npm run eval:check`. Results are written to `evals/results/second-conditional.md`.
 
 | # | Mode | Question | Answer | Expected | Note |
@@ -46,3 +48,11 @@ Run it with `npm run eval:check`. Results are written to `evals/results/second-c
 | 35 | repeat | → I would go to the bank. | I would go to bank. | correct | small slip, target is right |
 | 36 | repeat | → I would go to the bank. | I will go to the bank. | incorrect | |
 | 37 | repeat | → I'd go to the bank. | I would go to the bank. | correct | |
+| 38 | main | If you could meet anyone, dead or alive, who would you choose to meet? | If I met anyone dead or alive, I met, um, Barack Obama | incorrect | from a real session (owner); correction must include "if I could meet" |
+| 39 | main | If you could meet anyone, dead or alive, who would you choose to meet? | If I could meet anyone, I would meet Barack Obama. | correct | |
+| 40 | main | If you could meet anyone, dead or alive, who would you choose to meet? | I would meet Barack Obama. | correct | short answer; correction must include "(If I could meet" |
+| 41 | main | If you could have any job, what job would you like to have? | If I had any job, I would be a pilot. | incorrect | question's "could" dropped (same rule as #38); correction must include "could have" |
+| 42 | main | If you were the world's best at something, what would you like to be the world's best at? | I would like to be the best at public speaking. | correct | owner's example: if-clause shown in brackets as optional; correction must include "(If I were" |
+| 43 | main | If you were invisible for a day, what would you do? | If I was invisible, I would go to the bank. | correct | learner said the if-clause, so no brackets; correction must include "If I was invisible" |
+| 44 | repeat | → (If I could meet anyone, dead or alive,) I would meet Barack Obama. | I would meet Barack Obama. | correct | bracketed part is optional when repeating |
+| 45 | repeat | → (If I could meet anyone, dead or alive,) I would meet Barack Obama. | If I could meet anyone, I will meet Barack Obama. | incorrect | |

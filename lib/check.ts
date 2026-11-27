@@ -70,13 +70,13 @@ VERDICT, about the target grammar only:
 
 Learners do not have to repeat words from the question: "Would you prefer to see the future or the past?" → "I would prefer the past." is correct and needs no change.
 
-correctedAnswer: keep the learner's own words and ideas. Make the smallest changes that make the whole answer correct, natural English. Any correct version is fine; do not rewrite style.
+correctedAnswer: keep the learner's own words and ideas. Make the smallest changes that make the whole answer correct, natural English. Any correct version is fine; do not rewrite style.${topic.correctionStyle ? `\n${topic.correctionStyle}` : ""}
 
 nextQuestion, depending on MODE:
 - MODE main, verdict "correct" or "incorrect": one short, natural follow-up question about what they said that itself uses the target grammar (for listening practice), e.g. "Where would you buy it?".
 - MODE main, verdict "not_used": a short question that builds on their answer and makes them answer with the target grammar, e.g. "And what would you do there?". Do not explain grammar.
 - MODE followup: the learner does not have to use the target grammar here. "correct" if they answered without a verb for it ("In Spain.", "A car.") or with a clause that doesn't need it ("Because it is beautiful."), or used it correctly. "incorrect" if they answered the question's own verb in a wrong form, e.g. "What would you buy first?" → "I will buy a car." / "I buy a car." (that is a wrong attempt, not "not using it"). nextQuestion is "".
-- MODE repeat: the learner is repeating a corrected sentence. "correct" if the target grammar is now right (other small slips are fine), otherwise "incorrect". nextQuestion is "".
+- MODE repeat: the learner is repeating a corrected sentence. A part in round brackets is optional: leaving it out is fine. "correct" if the target grammar is now right (other small slips are fine), otherwise "incorrect". nextQuestion is "".
 
 Questions: at most 15 words, friendly, everyday vocabulary, no grammar terms.`;
 }
@@ -88,10 +88,11 @@ function userPrompt(input: CheckInput) {
   return lines.join("\n");
 }
 
-// Same words, ignoring case, punctuation and fillers.
+// Same words, ignoring case, punctuation, fillers and optional (bracketed) parts.
 function sameWords(a: string, b: string) {
   const norm = (s: string) =>
     s
+      .replace(/\([^)]*\)/g, " ")
       .toLowerCase()
       .replace(/[’‘]/g, "'")
       .replace(/[^a-z0-9'\s]/g, " ")
@@ -122,6 +123,8 @@ export async function checkAnswer(input: CheckInput) {
   const result = response.parsed_output;
   // The rules say no question in these modes. Enforce it rather than trust it.
   if (input.mode !== "main") result.nextQuestion = "";
+  // Grammar isn't required in follow-ups, so "not used" there means fine.
+  if (input.mode === "followup" && result.verdict === "not_used") result.verdict = "correct";
   // "Incorrect" with nothing to correct contradicts itself, so it's correct.
   if (result.verdict === "incorrect" && sameWords(result.correctedAnswer, input.answer)) {
     result.verdict = "correct";

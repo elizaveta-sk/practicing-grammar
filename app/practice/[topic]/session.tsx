@@ -9,7 +9,7 @@
 //     otherwise    -> next bank question
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { wordDiff } from "@/lib/diff";
+import { splitOptional, wordDiff } from "@/lib/diff";
 import { useRecorder, type Recording } from "@/lib/use-recorder";
 import { useVoice } from "@/lib/voice-choice";
 
@@ -24,7 +24,7 @@ type TurnResponse = { transcript: string; verdict?: Verdict; correctedAnswer?: s
 
 type Entry =
   | { id: number; who: "bot"; text: string; audioUrl?: string }
-  | { id: number; who: "learner"; transcript: string; corrected?: string }
+  | { id: number; who: "learner"; transcript: string; corrected?: string; wrong: boolean }
   | { id: number; who: "note"; text: string };
 type NewEntry = Entry extends infer E ? (E extends Entry ? Omit<E, "id"> : never) : never;
 
@@ -32,6 +32,40 @@ type Popup =
   | { kind: "correction"; sentence: string; triesLeft: number }
   | { kind: "nudge"; text: string }
   | null;
+
+// "(If I could meet anyone,) I would meet…": the bracketed start is optional,
+// so it's shown lighter with a small "optional" label.
+function Optional({ sentence }: { sentence: string }) {
+  const { optional, rest } = splitOptional(sentence);
+  return (
+    <>
+      {optional && (
+        <span className="opacity-60" title="Optional">
+          ({optional}) <sup className="text-[0.6rem] uppercase tracking-wide">optional</sup>{" "}
+        </span>
+      )}
+      {rest}
+    </>
+  );
+}
+
+// The corrected answer under the learner's words, with the changed words
+// underlined and the optional start shown lighter.
+function Corrected({ transcript, sentence }: { transcript: string; sentence: string }) {
+  const { optional, rest } = splitOptional(sentence);
+  return (
+    <>
+      {optional && <span className="opacity-60">({optional}) </span>}
+      {wordDiff(transcript, rest)
+        .filter((p) => p.kind !== "removed")
+        .map((p, i) => (
+          <span key={i} className={p.kind === "added" ? "font-semibold underline" : ""}>
+            {p.word}{" "}
+          </span>
+        ))}
+    </>
+  );
+}
 
 function shuffle<T>(items: T[]) {
   const a = [...items];
@@ -192,7 +226,7 @@ export function Session({ topicId, topicName, questions }: { topicId: string; to
 
     if (!data.transcript) return setTurnError("I didn't catch that. Please try again.");
     const corrected = data.correctedAnswer && norm(data.correctedAnswer) !== norm(data.transcript) ? data.correctedAnswer : undefined;
-    addEntry({ who: "learner", transcript: data.transcript, corrected });
+    addEntry({ who: "learner", transcript: data.transcript, corrected, wrong: data.verdict === "incorrect" });
 
     if (stage === "main") {
       if (data.verdict === "correct") return goFollowUp(data.nextQuestion ?? "");
@@ -306,15 +340,13 @@ export function Session({ topicId, topicName, questions }: { topicId: string; to
             <li key={e.id} className="ml-10 rounded-2xl rounded-tr-sm border border-current/15 px-4 py-3">
               <p>{e.transcript}</p>
               {e.corrected && (
-                <p className="mt-1 text-sm text-green-700 dark:text-green-400">
-                  ✓{" "}
-                  {wordDiff(e.transcript, e.corrected)
-                    .filter((p) => p.kind !== "removed")
-                    .map((p, i) => (
-                      <span key={i} className={p.kind === "added" ? "font-semibold underline" : ""}>
-                        {p.word}{" "}
-                      </span>
-                    ))}
+                <p
+                  className={`mt-1 text-sm ${
+                    e.wrong ? "text-amber-700 dark:text-amber-400" : "text-green-700 dark:text-green-400"
+                  }`}
+                >
+                  {e.wrong ? "✗ " : "✓ "}
+                  <Corrected transcript={e.transcript} sentence={e.corrected} />
                 </p>
               )}
             </li>
@@ -331,7 +363,9 @@ export function Session({ topicId, topicName, questions }: { topicId: string; to
         {popup?.kind === "correction" && (
           <div className="rounded-xl border-2 border-amber-500 bg-amber-50 p-4 text-black dark:bg-amber-950 dark:text-amber-50">
             <p className="text-sm font-medium">Say it like this:</p>
-            <p className="mt-1 text-lg">{popup.sentence}</p>
+            <p className="mt-1 text-lg">
+              <Optional sentence={popup.sentence} />
+            </p>
             <div className="mt-2 flex items-center justify-between text-sm">
               <button onClick={() => speak(popup.sentence)} className="underline">
                 🔊 Listen again
