@@ -32,5 +32,12 @@ export default async function PracticeTopic({ params }: PageProps<"/practice/[to
     ),
   }));
 
-  return <Session topicId={topic.id} topicName={topic.name} questions={questions} />;
+  return (
+    <Session
+      topicId={topic.id}
+      topicName={topic.name}
+      nudgeText={topic.nudgeText ?? `Remember to use the ${topic.name.toLowerCase()}.`}
+      questions={questions}
+    />
+  );
 }

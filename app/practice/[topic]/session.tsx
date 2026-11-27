@@ -109,7 +109,18 @@ function shuffle<T>(items: T[]) {
 
 const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9'\s]/g, " ").replace(/\s+/g, " ").trim();
 
-export function Session({ topicId, topicName, questions }: { topicId: string; topicName: string; questions: BankQuestion[] }) {
+export function Session({
+  topicId,
+  topicName,
+  nudgeText,
+  questions,
+}: {
+  topicId: string;
+  topicName: string;
+  /** The reminder shown when the grammar wasn't used. */
+  nudgeText: string;
+  questions: BankQuestion[];
+}) {
   const voice = useVoice();
 
   const [started, setStarted] = useState(false);
@@ -305,7 +316,7 @@ export function Session({ topicId, topicName, questions }: { topicId: string; to
       if (data.verdict === "correct") return goFollowUp(data.nextQuestion ?? "");
       if (data.verdict === "not_used") {
         const nudge = data.nextQuestion || currentQuestion;
-        setPopup({ kind: "nudge", text: `Remember to use the ${topicName.toLowerCase()}.` });
+        setPopup({ kind: "nudge", text: nudgeText });
         setCurrentQuestion(nudge);
         return addBot(nudge);
       }

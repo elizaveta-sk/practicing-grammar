@@ -162,6 +162,13 @@ export async function checkAnswer(input: CheckInput) {
     }
   }
 
+    // Same for a topic's model start (present perfect's "Yes, I have.").
+  if (input.mode === "main" && topic.modelStart && result.verdict !== "not_used") {
+    const corrected = result.correctedAnswer.trim();
+    const start = topic.modelStart(input.question, input.answer);
+    if (start && corrected && !/^\W*(yes|no)\b/i.test(corrected)) result.correctedAnswer = `${start} ${corrected}`;
+  }
+
     // "Incorrect" with nothing to correct contradicts itself, so it's correct.
   if (result.verdict === "incorrect" && sameWords(result.correctedAnswer, input.answer)) {
     result.verdict = "correct";

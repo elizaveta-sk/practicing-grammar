@@ -19,8 +19,15 @@ export type Topic = {
     /** An answer that needn't repeat the question's words. */
     noRepeat: string;
   };
+  /** Reminder shown when the grammar wasn't used. Default: "Remember to use the <name>." */
+  nudgeText?: string;
   /** Extra instruction for how correctedAnswer is written for this topic. */
   correctionStyle?: string;
+  /**
+   * A model start for the corrected answer (not optional, no brackets), for
+   * when the checker leaves it out. Returns "" when not needed.
+   */
+  modelStart?: (question: string, answer: string) => string;
   /**
    * Builds the optional start shown in brackets, from the question, for when
    * the checker leaves it out. Returns "" when the question doesn't allow it.
@@ -132,6 +139,58 @@ TOPICS["first-conditional"] = {
     "tonight,) I'll make pasta.\" The brackets mean it's optional, so this does NOT make the answer incorrect. " +
     "If the learner said an if-clause themselves, keep it (corrected if needed) with no brackets.",
   optionalStart: ifClauseFor,
+};
+
+TOPICS["present-perfect"] = {
+  id: "present-perfect",
+  name: "Present perfect",
+  rule:
+    "Experiences and things up to now: have/has + past participle (\"I have met\", \"I've been\", \"it has " +
+    "snowed\", \"I haven't eaten\"). Contractions count.\n" +
+    "YES/NO QUESTIONS (\"Have you ever…?\", \"Has it…?\", \"Has anyone…?\"): the ideal answer is a short answer " +
+    "plus details: \"Yes, I have. I met Tom Hanks in 2019.\" / \"No, I haven't, but I'd love to.\" (owner's " +
+    "decision: learners must practise the short answers).\n" +
+    "- A short answer alone (\"Yes, I have.\", \"No, I haven't.\") or just \"Yes.\" / \"No.\" is \"not_used\": " +
+    "the nudge question asks for details (\"Can you tell me more?\").\n" +
+    "- A wrong short answer (\"Yes, I did.\", \"Yes, I do.\", \"No, I didn't.\", \"Yes, I have met.\") is " +
+    "\"incorrect\", corrected to \"Yes, I have.\" / \"No, I haven't.\" (\"has\"/\"hasn't\" for he/she/it).\n" +
+    "- A short answer followed by ANY details, in any tense, is \"correct\" (\"No, I haven't, but I'd love to.\", " +
+    "\"No, I haven't. I'm scared of horses.\").\n" +
+    "- A full answer without the short answer (\"I have met Tom Hanks.\") is \"correct\".\n" +
+    "- After the short answer, details about a finished time use past simple and are correct (\"Yes, I have. I met " +
+    "him in 2019.\").\n" +
+    "OTHER QUESTIONS (\"What have you done today?\", \"Where have you been…?\", \"What is the best movie you have " +
+    "ever seen?\"): answer with the present perfect (\"I have cleaned my flat.\", \"The best movie I've ever seen is " +
+    "Titanic.\"). A bare noun (\"Titanic.\", \"Spain and Italy.\") is \"not_used\".\n" +
+    "Mistakes outside have/has + participle (articles, prepositions) are not target mistakes: fixed silently.",
+  commonErrors: [
+    "past simple with no finished time where present perfect is needed (\"Yes, I met Tom Hanks.\", \"I ate today.\")",
+    "present perfect with a finished time (\"I have met him in 2019\" → \"I met him in 2019\")",
+    "wrong past participle (\"I have went\", \"I have meet\", \"I have ate\", \"I have rode\", \"I have sang\")",
+    "has/have mixed up (\"it have snowed\", \"I has been\")",
+    "missing have (\"I been to Spain\", \"I never ridden a horse\")",
+    "wrong short answer (\"Yes, I did.\", \"Yes, I do.\")",
+  ],
+  examples: {
+    followUp: "Have you ever told anyone about it?",
+    nudge: "Can you tell me more?",
+    followupWrong: '"Have you ever told anyone about it?" → "Yes, I told." / "Yes, I have tell my friend."',
+    noRepeat: `"Have you ever met a famous person?" → "Yes, I have. I've met a singer."`,
+  },
+  nudgeText: "Remember to answer with the present perfect, for example: “Yes, I have. I've…”",
+  correctionStyle:
+    "For a yes/no question answered WITHOUT a short answer, start correctedAnswer with the right short answer as " +
+    "a model, then their sentence: \"Yes, I have. I have met Tom Hanks.\" This does NOT make the answer incorrect. " +
+    "No brackets for this topic.",
+  // The owner's short-answer rule, enforced: "Have you…?" -> "Yes, I have." / "No, I haven't."
+  modelStart: (question, answer) => {
+    const m = question.match(/^(have|has) (you|it)\b/i);
+    if (!m || /^\W*(yes|no|yeah|yep|nope)\b/i.test(answer)) return "";
+    const negative = /\b(never|not|haven't|hasn't|no)\b/i.test(answer);
+    const subject = m[2].toLowerCase() === "you" ? "I" : "it";
+    const verb = subject === "I" ? (negative ? "haven't" : "have") : negative ? "hasn't" : "has";
+    return `${negative ? "No" : "Yes"}, ${subject} ${verb}.`;
+  },
 };
 
 export function getTopic(id: string) {
