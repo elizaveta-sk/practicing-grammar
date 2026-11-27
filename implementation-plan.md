@@ -26,7 +26,7 @@ Speech-to-text and TTS prices weren't checked here. Phase 1 and Phase 3 compare 
 - [x] 0.1 Create the Next.js + TypeScript project and a Git repository
 - [x] 0.2 Create the Supabase project; add the `users` and `sessions` tables
 - [x] 0.3 Get API keys (Anthropic, STT candidates, TTS) and set a **monthly spending limit** on each account
-- [ ] 0.4 Connect the repository to Vercel; add the keys as environment variables; deploy a "hello" page
+- [x] 0.4 Connect the repository to Vercel; add the keys as environment variables; deploy a "hello" page
 - [x] 0.5 Add the first grammar-bank file (`second-conditional.md`) as sample data
 
 ## Phase 1: Transcription check (the go/no-go step)

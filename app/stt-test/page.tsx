@@ -90,8 +90,16 @@ export default function SttTestPage() {
         setMicLabel(stream.getAudioTracks()[0]?.label ?? "");
         await new Promise((r) => setTimeout(r, 500)); // warm-up on first use
       }
-      const mimeType = pickMimeType();
-      const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+      let mimeType = pickMimeType();
+      let recorder: MediaRecorder;
+      try {
+        recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+      } catch {
+        // Some browsers (iPhone Safari) claim support for a format, then reject it.
+        // Fall back to the browser's own default format.
+        mimeType = undefined;
+        recorder = new MediaRecorder(stream);
+      }
       chunksRef.current = [];
       recorder.ondataavailable = (e) => e.data.size > 0 && chunksRef.current.push(e.data);
       recorder.onstart = () => {
@@ -108,9 +116,20 @@ export default function SttTestPage() {
       };
       recorderRef.current = recorder;
       recorder.start();
-    } catch {
+    } catch (e) {
       setStarting(false);
-      setError("Microphone access was blocked. Allow it in the browser settings.");
+      const name = e instanceof DOMException ? e.name : "";
+      const detail = e instanceof Error ? `${e.name}: ${e.message}` : String(e);
+      if (name === "NotAllowedError" || name === "SecurityError") {
+        setError(
+          "Microphone access was blocked for this site. On iPhone: tap “aA” in the address bar → " +
+            `Website Settings → Microphone → Allow, then reload. (${detail})`,
+        );
+      } else if (name === "NotFoundError") {
+        setError(`No microphone found. (${detail})`);
+      } else {
+        setError(`Could not start recording. (${detail})`);
+      }
     }
   }
 
