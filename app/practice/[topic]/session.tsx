@@ -140,7 +140,7 @@ export function Session({ topicId, topicName, questions }: { topicId: string; to
         url = URL.createObjectURL(await res.blob());
         spokenCache.current.set(`${voice}|${text}`, url);
       } catch {
-        return undefined; // the text is still on screen behind "Show text"
+        return undefined; // the text is still on screen behind "Show the question"
       }
     }
     play(url);
@@ -351,7 +351,7 @@ export function Session({ topicId, topicName, questions }: { topicId: string; to
                   <span>{e.text}</span>
                 ) : (
                   <button onClick={() => setShown((s) => new Set(s).add(e.id))} className="text-sm underline opacity-70">
-                    Show text
+                    Show the question
                   </button>
                 )}
               </div>

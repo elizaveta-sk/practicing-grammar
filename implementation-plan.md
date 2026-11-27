@@ -69,7 +69,7 @@ Failures that matter for grading. "Hid" = fixed the learner's mistake, so the ap
 - [x] 3.2 Script: generate audio for every bank question once and save it as files (`npm run audio:generate`, files in `public/audio/`)
 - [x] 3.3 Server route for live TTS (nudges, follow-ups, corrected sentences)
 - [x] 3.4 Audio player in the page; play automatically when the browser allows it, with a fallback "tap to play" button for iPhone
-- [x] 3.5 **Show text** button for questions
+- [x] 3.5 **Show the question** button (text hidden until tapped)
 
 ## Phase 4: The practice session (`/practice`)
 Built and checked with recorded test answers; **owner's full run-through on laptop + iPhone still to do.**
