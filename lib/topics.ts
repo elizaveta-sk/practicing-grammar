@@ -8,6 +8,17 @@ export type Topic = {
   rule: string;
   /** Typical wrong attempts. These count as "incorrect", not "not used". */
   commonErrors: string[];
+  /** Topic-specific examples used in the checker's instructions. */
+  examples: {
+    /** A follow-up question that uses the grammar. */
+    followUp: string;
+    /** A nudge question that makes the learner use it. */
+    nudge: string;
+    /** A follow-up question and a wrong attempt at answering it. */
+    followupWrong: string;
+    /** An answer that needn't repeat the question's words. */
+    noRepeat: string;
+  };
   /** Extra instruction for how correctedAnswer is written for this topic. */
   correctionStyle?: string;
   /**
@@ -42,6 +53,12 @@ export const TOPICS: Record<string, Topic> = {
       "dropping the question's \"could\" in the if-clause (\"If I met anyone\" for \"If you could meet anyone?\", " +
         "\"If I had any job\" for \"If you could have any job?\")",
     ],
+    examples: {
+      followUp: "Where would you buy it?",
+      nudge: "And what would you do there?",
+      followupWrong: '"What would you buy first?" → "I will buy a car." / "I buy a car."',
+      noRepeat: '"Would you prefer to see the future or the past?" → "I would prefer the past."',
+    },
     // Owner's request: always show the whole pattern, with the if-clause marked optional.
     correctionStyle:
       "If the learner left out the if-clause, start correctedAnswer with the if-clause in round brackets, built " +

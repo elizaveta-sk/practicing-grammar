@@ -38,7 +38,7 @@ const CheckResult = z.object({
     .describe('The part of the answer where the target grammar is or should be, e.g. "I will buy". "" if none.'),
   targetMistake: z
     .string()
-    .describe('The exact target-grammar mistake in targetPhrase, e.g. "will instead of would". "none" if there is none.'),
+    .describe('The exact target-grammar mistake in targetPhrase, e.g. "wrong tense". "none" if there is none.'),
   verdict: z
     .enum(["correct", "incorrect", "not_used"])
     .describe("Judgement of the TARGET grammar only."),
@@ -74,25 +74,25 @@ ${topic.rule}
 Common wrong attempts (these are "incorrect", not "not_used"):
 ${topic.commonErrors.map((e) => `- ${e}`).join("\n")}
 
-SAY IT AGAIN: if the learner didn't answer but asked to hear it again or said they didn't understand ("Sorry, what?", "Pardon?", "Can you repeat the question?", "Sorry, could you say that again?", "I didn't understand"), set askedToRepeat true; the other fields don't matter. If they apologise or hesitate and then answer ("Sorry, I would go to the bank"), askedToRepeat is false and you judge the answer.
+SAY IT AGAIN: if the learner didn't answer but asked to hear it again or said they didn't understand ("Sorry, what?", "Pardon?", "Can you repeat the question?", "Sorry, could you say that again?", "I didn't understand"), set askedToRepeat true; the other fields don't matter. If they apologise or hesitate and then answer ("Sorry, um, …" followed by an answer), askedToRepeat is false and you judge the answer.
 
-WORD MEANING: if the learner asked what a word or phrase from the question means ("What does … mean?", "What is …?", "I don't know the word …"), set meaningHelp to ONE short, friendly sentence in simple B1 English, at most 20 words, starting with the word in quotes, with one everyday example. E.g. "'Ancient' means very, very old, like the pyramids in Egypt." The other fields don't matter. A question that is part of their answer ("What would I do? I would go to the bank.") is not this.
+WORD MEANING: if the learner asked what a word or phrase from the question means ("What does … mean?", "What is …?", "I don't know the word …"), set meaningHelp to ONE short, friendly sentence in simple B1 English, at most 20 words, starting with the word in quotes, with one everyday example. E.g. "'Ancient' means very, very old, like the pyramids in Egypt." The other fields don't matter. A question that is part of their answer (asking themselves the question, then answering it) is not this.
 
-WORD HELP: learners sometimes get stuck on a word and say things like "how do I say this in English?", "how do you call it?", "what's the word?", then describe it ("the person who fixes cars") or say it in Russian or Japanese (it may appear in Cyrillic, Japanese script, or as odd transliterated letters). If they did NOT manage to say the word themselves, set wordHelp to the natural English word or short phrase that fits what they meant ("a mechanic", "to give up smoking"), with no grammar of the answer in it. A description given in place of the word still means they need it: "I would be a, how do you call it, a person who flies planes" → wordHelp "a pilot". If they asked but then found the word anyway ("how do I say… a pilot"), wordHelp is "" and you judge the answer normally. When wordHelp is set, the other fields don't matter: verdict "correct", correctedAnswer "", nextQuestion "".
+WORD HELP: learners sometimes get stuck on a word and say things like "how do I say this in English?", "how do you call it?", "what's the word?", then describe it ("the person who fixes cars") or say it in Russian or Japanese (it may appear in Cyrillic, Japanese script, or as odd transliterated letters). If they did NOT manage to say the word themselves, set wordHelp to the natural English word or short phrase that fits what they meant ("a mechanic", "to give up smoking"), with no grammar of the answer in it. A description given in place of the word still means they need it: "My dream job is a, how do you call it, a person who flies planes" → wordHelp "a pilot". If they asked but then found the word anyway ("how do I say… a pilot"), wordHelp is "" and you judge the answer normally. When wordHelp is set, the other fields don't matter: verdict "correct", correctedAnswer "", nextQuestion "".
 
 VERDICT, about the target grammar only:
 - "correct": the learner used the target grammar correctly. Other mistakes (articles, prepositions, plurals, word choice, a missing "to" after "like") do not change this verdict; fix them silently in correctedAnswer.
 - "incorrect": the learner answered with a verb phrase where the target grammar was needed, but formed it wrongly or used another tense.
 - "not_used": the learner gave no verb phrase where the target grammar would go, e.g. just a noun or phrase ("A house.", "The past.", "Kyoto, because it's beautiful.").
 
-Learners do not have to repeat words from the question: "Would you prefer to see the future or the past?" → "I would prefer the past." is correct and needs no change.
+Learners do not have to repeat words from the question: ${topic.examples.noRepeat} is correct and needs no change.
 
 correctedAnswer: keep the learner's own words and ideas. Make the smallest changes that make the whole answer correct, natural English. Any correct version is fine; do not rewrite style.${topic.correctionStyle ? `\n${topic.correctionStyle}` : ""}
 
 nextQuestion, depending on MODE:
-- MODE main, verdict "correct" or "incorrect": one short, natural follow-up question about what they said that itself uses the target grammar (for listening practice), e.g. "Where would you buy it?".
-- MODE main, verdict "not_used": a short question that builds on their answer and makes them answer with the target grammar, e.g. "And what would you do there?". Do not explain grammar.
-- MODE followup: the learner does not have to use the target grammar here. "correct" if they answered without a verb for it ("In Spain.", "A car.") or with a clause that doesn't need it ("Because it is beautiful."), or used it correctly. "incorrect" if they answered the question's own verb in a wrong form, e.g. "What would you buy first?" → "I will buy a car." / "I buy a car." (that is a wrong attempt, not "not using it"). nextQuestion is "".
+- MODE main, verdict "correct" or "incorrect": one short, natural follow-up question about what they said that itself uses the target grammar (for listening practice), e.g. "${topic.examples.followUp}".
+- MODE main, verdict "not_used": a short question that builds on their answer and makes them answer with the target grammar, e.g. "${topic.examples.nudge}". Do not explain grammar.
+- MODE followup: the learner does not have to use the target grammar here. "correct" if they answered without a verb for it ("In Spain.", "A car.") or with a clause that doesn't need it ("Because it is beautiful."), or used it correctly. "incorrect" if they answered the question's own verb in a wrong form, e.g. ${topic.examples.followupWrong} (that is a wrong attempt, not "not using it"). nextQuestion is "".
 - MODE repeat: the learner is repeating a corrected sentence. A part in round brackets is optional: leaving it out is fine. "correct" if the target grammar is now right (other small slips are fine), otherwise "incorrect". nextQuestion is "".
 
 Questions: at most 15 words, friendly, everyday vocabulary, no grammar terms.`;
