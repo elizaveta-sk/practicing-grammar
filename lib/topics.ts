@@ -10,6 +10,11 @@ export type Topic = {
   commonErrors: string[];
   /** Extra instruction for how correctedAnswer is written for this topic. */
   correctionStyle?: string;
+  /**
+   * Builds the optional start shown in brackets, from the question, for when
+   * the checker leaves it out. Returns "" when the question doesn't allow it.
+   */
+  optionalStart?: (question: string) => string;
 };
 
 export const TOPICS: Record<string, Topic> = {
@@ -43,6 +48,16 @@ export const TOPICS: Record<string, Topic> = {
       "from the question, then their result clause: \"(If I could have any skill I wanted,) I would like to be the " +
       "best at public speaking.\" The brackets mean it's optional, so this does NOT make the answer incorrect. " +
       "If the learner said an if-clause themselves, keep it (corrected if needed) with no brackets.",
+    // Bank questions start "If you …, <question>": turn that into the learner's if-clause.
+    optionalStart: (question) => {
+      const m = question.match(/^(if you [^,?]+),/i);
+      if (!m) return "";
+      return m[1]
+        .replace(/\byou\b/gi, "I")
+        .replace(/\byour\b/gi, "my")
+        .replace(/\byourself\b/gi, "myself")
+        .replace(/^if/i, "If");
+    },
   },
 };
 

@@ -3,7 +3,7 @@
 **Please check the "Expected" column.** That is the answer key the checker is graded against.
 Change any label you disagree with. 
 - **Mode:** `main` = answer to a bank question (grammar required) · `followup` = answer to the conversation follow-up (grammar not required) · `repeat` = repeating a correction (the sentence to repeat is in the Question column after `→`)
-- **Expected:** `correct` · `incorrect` (wrong form) · `not_used` (no attempt, e.g. just a noun) · `say_again` (asked to hear it again) · `help` (asked how to say a word; the note's "must include" then checks the suggested word)
+- **Expected:** `correct` · `incorrect` (wrong form) · `not_used` (no attempt, e.g. just a noun) · `say_again` (asked to hear it again) · `meaning` (asked what a word means) · `help` (asked how to say a word; the note's "must include" then checks the suggested word)
 
 A note can also say `correction must include "…"` to check the corrected sentence, not just the verdict.
 
@@ -70,3 +70,9 @@ Run it with `npm run eval:check`. Results are written to `evals/results/second-c
 | 57 | repeat | → I would go to the bank. | Sorry, what? | say_again | while repeating a correction |
 | 58 | main | If you were invisible for a day, what would you do? | Sorry, I would go to the bank. | correct | apologises, then answers: judged normally |
 | 59 | main | If you could stay one age forever, what age would it be? | What? Hmm, it would be 30. | correct | surprise, then answers |
+| 60 | main | If you could be any fictional character, who would you be and why? | What does fictional mean? | meaning | correction must include "fictional" |
+| 61 | main | If you could meet anyone, dead or alive, who would you choose to meet? | Sorry, what is dead or alive? | meaning | correction must include "dead or alive" |
+| 62 | main | If you were invisible for a day, what would you do? | Um, I don't know the word invisible. | meaning | correction must include "invisible" |
+| 63 | followup | Would you give the money back afterwards? | What does afterwards mean? | meaning | correction must include "afterwards" |
+| 64 | main | If you could be any fictional character, who would you be and why? | I would be Harry Potter because he can do magic. | correct | uses the word's meaning correctly; not a question |
+| 65 | main | If you were invisible for a day, what would you do? | What would I do? I would go to the bank. | correct | question inside the answer is not a meaning request |

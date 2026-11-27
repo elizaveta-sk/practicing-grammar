@@ -34,6 +34,7 @@ export async function POST(request: Request) {
 
     const { result } = await checkAnswer({ topicId, mode, question, answer: transcript, expectedRepeat });
     if (result.askedToRepeat) return Response.json({ transcript, askedToRepeat: true });
+    if (result.meaningHelp) return Response.json({ transcript, meaningHelp: result.meaningHelp });
     if (result.wordHelp) return Response.json({ transcript, wordHelp: result.wordHelp });
     return Response.json({
       transcript,

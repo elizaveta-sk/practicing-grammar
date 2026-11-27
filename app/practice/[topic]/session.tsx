@@ -29,6 +29,8 @@ type TurnResponse = {
   wordHelp?: string;
   /** "Sorry, what?": say the last line again. */
   askedToRepeat?: boolean;
+  /** "What does 'fictional' mean?": a short explanation. */
+  meaningHelp?: string;
 };
 
 type Entry =
@@ -41,6 +43,7 @@ type Popup =
   | { kind: "correction"; sentence: string; triesLeft: number }
   | { kind: "nudge"; text: string }
   | { kind: "word"; phrase: string; previous: Popup }
+  | { kind: "meaning"; text: string; previous: Popup }
   | null;
 
 // "(If I could meet anyone,) I would meet…": the bracketed start is optional,
@@ -120,16 +123,25 @@ export function Session({ topicId, topicName, questions }: { topicId: string; to
 
   // One <audio> element, first played inside the Start tap: iPhone Safari
   // then allows it to play again later without another tap.
-  function play(url: string) {
+  function play(url: string, then?: string) {
     const a = audioRef.current;
     if (!a) return;
     a.pause();
     a.src = url;
+    // Optionally play a second clip right after (e.g. an explanation, then the question).
+    a.onended = then ? () => play(then) : null;
     setTapToPlay(null);
     a.play().catch(() => setTapToPlay(url)); // autoplay blocked: offer a button
   }
 
   async function speak(text: string) {
+    const url = await speechUrl(text);
+    if (url) play(url);
+    return url;
+  }
+
+  /** Audio for a line of text, generated once and then cached. */
+  async function speechUrl(text: string) {
     let url = spokenCache.current.get(`${voice}|${text}`);
     if (!url) {
       try {
@@ -145,7 +157,6 @@ export function Session({ topicId, topicName, questions }: { topicId: string; to
         return undefined; // the text is still on screen behind "Show the question"
       }
     }
-    play(url);
     return url;
   }
 
@@ -246,15 +257,30 @@ export function Session({ topicId, topicName, questions }: { topicId: string; to
       return speak(currentQuestion);
     }
 
+    // "What does 'fictional' mean?": explain simply, then ask the same
+    // question again. Not graded and doesn't use up a try.
+    if (data.meaningHelp) {
+      const explanation = data.meaningHelp;
+      addEntry({ who: "learner", transcript: data.transcript, wrong: false });
+      setPopup((p) => ({ kind: "meaning", text: explanation, previous: p && "previous" in p ? p.previous : p }));
+      const lastBot = [...log].reverse().find((e) => e.who === "bot");
+      const [explained, question] = await Promise.all([
+        speechUrl(explanation),
+        lastBot?.who === "bot" && lastBot.audioUrl ? lastBot.audioUrl : speechUrl(currentQuestion),
+      ]);
+      if (explained) play(explained, question);
+      return;
+    }
+
     // "How do I say this in English?": give the word, then the same question
     // again. Not graded and doesn't use up a try.
     if (data.wordHelp) {
       addEntry({ who: "learner", transcript: data.transcript, wrong: false });
-      setPopup((p) => ({ kind: "word", phrase: data.wordHelp!, previous: p?.kind === "word" ? p.previous : p }));
+      setPopup((p) => ({ kind: "word", phrase: data.wordHelp!, previous: p && "previous" in p ? p.previous : p }));
       speak(`You can say: ${data.wordHelp}.`);
       return;
     }
-    if (popup?.kind === "word") setPopup(popup.previous);
+    if (popup && "previous" in popup) setPopup(popup.previous);
     const corrected = data.correctedAnswer && norm(data.correctedAnswer) !== norm(data.transcript) ? data.correctedAnswer : undefined;
     addEntry({ who: "learner", transcript: data.transcript, corrected, wrong: data.verdict === "incorrect" });
 
@@ -417,6 +443,18 @@ export function Session({ topicId, topicName, questions }: { topicId: string; to
                 🔊 Listen again
               </button>
               <span className="opacity-70">Now try your answer again</span>
+            </div>
+          </div>
+        )}
+        {popup?.kind === "meaning" && (
+          <div className="rounded-xl border-2 border-violet-500 bg-violet-50 p-4 text-black dark:bg-violet-950 dark:text-violet-50">
+            <p className="text-sm font-medium">📖 What it means:</p>
+            <p className="mt-1 text-lg">{popup.text}</p>
+            <div className="mt-2 flex items-center justify-between text-sm">
+              <button onClick={() => speak(popup.text)} className="underline">
+                🔊 Listen again
+              </button>
+              <span className="opacity-70">Now answer the question</span>
             </div>
           </div>
         )}
