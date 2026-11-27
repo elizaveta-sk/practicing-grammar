@@ -470,13 +470,10 @@ export function Session({
             <p className="mt-1 text-lg">
               <Optional sentence={popup.sentence} />
             </p>
-            <div className="mt-2 flex items-center justify-between text-sm">
+            <div className="mt-2 text-sm">
               <button onClick={() => sayCorrection(popup.sentence)} className="underline">
                 🔊 Listen again
               </button>
-              <span className="opacity-70">
-                {popup.triesLeft} {popup.triesLeft === 1 ? "try" : "tries"} left
-              </span>
             </div>
           </div>
         )}
