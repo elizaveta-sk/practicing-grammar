@@ -1,14 +1,9 @@
 import { availableProviders, transcribe, type ProviderId } from "@/lib/stt";
+import { testRoutesDisabled as testPageDisabled } from "@/lib/test-gate";
 
 export const maxDuration = 60;
 
 const MAX_BYTES = 4 * 1024 * 1024; // Vercel rejects request bodies over ~4.5 MB
-
-// The Phase 1 test page is for local use only. It uses paid API keys and has
-// no login yet, so it is switched off in production unless explicitly enabled.
-function testPageDisabled() {
-  return process.env.NODE_ENV === "production" && process.env.ENABLE_STT_TEST !== "1";
-}
 
 export async function GET() {
   if (testPageDisabled()) return new Response("Not found", { status: 404 });
