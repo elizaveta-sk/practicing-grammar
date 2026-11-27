@@ -34,7 +34,7 @@ Speech-to-text and TTS prices weren't checked here. Phase 1 and Phase 3 compare 
 - [x] 1.2 Server route: receive the audio and send it to an STT provider
 - [x] 1.3 Show the transcript on the page
 - [x] 1.4 Add 2–3 providers behind one `transcribe()` function, with a dropdown to switch between them (for testing only)
-- [ ] 1.5 Test on Chrome and on iPhone Safari
+- [x] 1.5 Test on Chrome and on iPhone Safari
 - [x] 1.6 **Test:** record ~20 sentences with typical Russian and Japanese speaker mistakes (missing articles, *-s*/*-ed* endings, wrong tense, *I'd* vs *I would*). Write down which provider keeps the mistakes. Try a "transcribe verbatim, do not correct grammar" prompt where the provider supports it.
 - [ ] 1.7 Choose the provider and record the cost per minute
 
