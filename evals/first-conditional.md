@@ -43,3 +43,5 @@ Run it with `npm run eval:check -- first-conditional`.
 | 35 | main | If it is fantastic weather tomorrow, what will you do? | I will go to the park if it is sunny. | correct | learner's own order (if at the end) is fine |
 | 36 | main | What will you do if you suddenly get a headache? | If I get a headache, I will lie down. | correct | learner's own order (if first) is fine |
 | 37 | main | What will you do if you suddenly get a headache? | I lie down if I get a headache. | incorrect | order fine, but present simple instead of will |
+| 38 | main | If there is no coffee at your home tomorrow morning, what will you do? | I drink tea. It's okay for me | incorrect | from a real session (owner): only the answer needs will, the general fact stays present; correction must include "It's okay for me" |
+| 39 | main | What will you eat if you are hungry when you get home tonight? | I'll make pasta. I love Italian food. | correct | extra opinion stays present simple; correction must include "I love Italian food" |

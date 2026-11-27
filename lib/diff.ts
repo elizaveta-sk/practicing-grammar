@@ -40,32 +40,39 @@ export function wordDiff(expected: string, actual: string): DiffPart[] {
 }
 
 export type OptionalSplit = {
-  /** The optional words, without brackets ("If I could meet anyone," / "if I won the lottery"). */
+  /** Text before the optional part ("" when it's at the start). */
+  before: string;
+  /** The optional words, without brackets. */
   optional: string;
-  /** The rest of the sentence: the part that has to be said. */
-  main: string;
-  /** Where the optional words go. */
+  /** Text after it: the main clause, or punctuation and any extra sentences. */
+  after: string;
+  /** "start" when the sentence begins with the optional part, "end" when it follows the main clause. */
   at: "start" | "end" | null;
-  /** Final punctuation after an optional part at the end ("."). */
-  end: string;
 };
 
 /**
- * The checker marks an optional if-part with round brackets, at the start or
- * the end, matching the question's order:
+ * The checker marks an optional if-part with round brackets, in the question's
+ * order, after the clause it belongs to:
  *   "(If I could meet anyone,) I would meet Barack Obama."
  *   "I would go to the bank (if I were invisible for a day)."
+ *   "I will drink tea (if there is no coffee at my home). It's okay for me."
  */
 export function splitOptional(sentence: string): OptionalSplit {
-  const first = sentence.match(/^\s*\(([^)]*)\)\s*([\s\S]*)$/);
-  if (first) return { optional: first[1].trim(), main: first[2], at: "start", end: "" };
-  const last = sentence.match(/^([\s\S]*?)\s*\(([^)]*)\)\s*([.!?]*)\s*$/);
-  if (last) return { optional: last[2].trim(), main: last[1], at: "end", end: last[3] };
-  return { optional: "", main: sentence, at: null, end: "" };
+  const m = sentence.match(/^([\s\S]*?)\(([^)]*)\)([\s\S]*)$/);
+  if (!m) return { before: sentence, optional: "", after: "", at: null };
+  const before = m[1].trim();
+  return {
+    before,
+    optional: m[2].trim(),
+    after: before ? m[3].replace(/^\s+(?=[.,!?])/, "") : m[3].trim(),
+    at: before ? "end" : "start",
+  };
 }
 
 /** The sentence without its optional part, as the voice says it. */
 export function withoutOptional(sentence: string) {
-  const { main, at, end } = splitOptional(sentence);
-  return at === "end" ? main.replace(/[\s,]+$/, "") + (end || ".") : main;
+  const { before, after, at } = splitOptional(sentence);
+  if (at !== "end") return at === "start" ? after : before;
+  const joined = (before.replace(/[\s,]+$/, "") + after).trim();
+  return /[.!?]$/.test(joined) ? joined : joined + ".";
 }

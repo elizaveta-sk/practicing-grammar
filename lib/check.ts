@@ -4,6 +4,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { z } from "zod";
+import { splitOptional, withoutOptional } from "./diff";
 import { getTopic } from "./topics";
 
 export const CHECK_MODEL = "claude-haiku-5-5";
@@ -87,7 +88,8 @@ VERDICT, about the target grammar only:
 
 Learners do not have to repeat words from the question: ${topic.examples.noRepeat} is correct and needs no change.
 
-correctedAnswer: keep the learner's own words and ideas. Make the smallest changes that make the whole answer correct, natural English. Any correct version is fine; do not rewrite style.${topic.correctionStyle ? `\n${topic.correctionStyle}` : ""}
+correctedAnswer: keep the learner's own words and ideas. Make the smallest changes that make the whole answer correct, natural English. Any correct version is fine; do not rewrite style.
+Only the sentence that answers the question needs the target grammar, and it does need it; extra sentences after it (reasons, opinions, general facts that are always true) keep their own natural tense and must NOT be changed. E.g. "I drink tea. It's okay for me." → verdict "incorrect" ("I drink tea" answers the question, so it needs the target form), correctedAnswer "I will drink tea. It's okay for me." ("It's okay for me" is a general fact: not "It will be okay"). "I'd be a pilot. I love planes." → "I love planes" stays.${topic.correctionStyle ? `\n${topic.correctionStyle}` : ""}
 
 nextQuestion, depending on MODE:
 - MODE main, verdict "correct" or "incorrect": one short, natural follow-up question about what they said that itself uses the target grammar (for listening practice), e.g. "${topic.examples.followUp}".
@@ -106,6 +108,35 @@ function userPrompt(input: CheckInput) {
   if (input.mode === "repeat" && input.expectedRepeat) lines.push(`SENTENCE TO REPEAT: ${input.expectedRepeat}`);
   lines.push(`LEARNER SAID (transcript): ${input.answer}`);
   return lines.join("\n");
+}
+
+/**
+ * Puts the optional if-part (in brackets) into a corrected answer, in the
+ * question's order: first for "If you…, what…?", after the first sentence for
+ * "What…if you…?" (owner: both orders are taught). Keeps the checker's own
+ * if-part when it's already on the right side; moves it when it isn't.
+ */
+export function placeOptionalIf(corrected: string, question: string, clause: string) {
+  let text = corrected.trim();
+  if (!clause || !text) return text;
+  const wantStart = /^\s*if\b/i.test(question);
+  const marked = splitOptional(text);
+  if (marked.at) {
+    if ((marked.at === "start") === wantStart) return text;
+    text = withoutOptional(text);
+  } else if (text.includes("(")) {
+    return text;
+  }
+  if (wantStart) {
+    const rest = /^(I|I'[a-z]+)\b/.test(text) ? text : text[0].toLowerCase() + text.slice(1);
+    return `(${clause},) ${rest}`;
+  }
+  // After the first sentence, so extra sentences ("It's okay for me.") stay after it.
+  const m = text.match(/^([\s\S]*?)([.!?]+)(\s[\s\S]*)?$/);
+  const first = m ? m[1] : text;
+  const punct = m ? m[2] : ".";
+  const restOf = m?.[3] ?? "";
+  return `${first} (${clause.charAt(0).toLowerCase()}${clause.slice(1)})${punct}${restOf}`;
 }
 
 // Same words, ignoring case, punctuation, fillers and optional (bracketed) parts.
@@ -153,32 +184,20 @@ export async function checkAnswer(input: CheckInput) {
   if (input.mode !== "main") result.nextQuestion = "";
   // Grammar isn't required in follow-ups, so "not used" there means fine.
   if (input.mode === "followup" && result.verdict === "not_used") result.verdict = "correct";
-  // The optional if-part is the owner's rule, so don't leave it to chance: if
-  // the learner gave no if-clause and the checker didn't add one, build it
-  // from the question, in the question's order (owner: both orders are taught).
+  // The optional if-part is the owner's rule, so don't leave it to chance:
+  // make sure it's there and in the question's order.
   if (input.mode === "main" && topic.optionalIf && !/\bif\b/i.test(input.answer)) {
-    const corrected = result.correctedAnswer.trim();
-    const clause = topic.optionalIf(input.question);
-    if (clause && corrected && !corrected.includes("(")) {
-      if (/^\s*if\b/i.test(input.question)) {
-        const rest = /^(I|I'[a-z]+)\b/.test(corrected) ? corrected : corrected[0].toLowerCase() + corrected.slice(1);
-        result.correctedAnswer = `(${clause},) ${rest}`;
-      } else {
-        const punct = corrected.match(/[.!?]+$/)?.[0] ?? ".";
-        const body = corrected.replace(/[.!?]+$/, "");
-        result.correctedAnswer = `${body} (${clause.charAt(0).toLowerCase()}${clause.slice(1)})${punct}`;
-      }
-    }
+    result.correctedAnswer = placeOptionalIf(result.correctedAnswer, input.question, topic.optionalIf(input.question));
   }
 
-    // Same for a topic's model start (present perfect's "Yes, I have.").
+  // Same for a topic's model start (present perfect's "Yes, I have.").
   if (input.mode === "main" && topic.modelStart && result.verdict !== "not_used") {
     const corrected = result.correctedAnswer.trim();
     const start = topic.modelStart(input.question, input.answer);
     if (start && corrected && !/^\W*(yes|no)\b/i.test(corrected)) result.correctedAnswer = `${start} ${corrected}`;
   }
 
-    // "Incorrect" with nothing to correct contradicts itself, so it's correct.
+  // "Incorrect" with nothing to correct contradicts itself, so it's correct.
   if (result.verdict === "incorrect" && sameWords(result.correctedAnswer, input.answer)) {
     result.verdict = "correct";
   }

@@ -54,52 +54,34 @@ function OptionalPart({ text, trailing = false }: { text: string; trailing?: boo
       <span className="opacity-45" title="Optional: you can leave this part out">
         {text}
       </span>
-      <span className="sr-only"> (optional)</span>
       {!trailing && " "}
     </>
   );
 }
 
 function Optional({ sentence }: { sentence: string }) {
-  const { optional, main, at, end } = splitOptional(sentence);
-  return (
-    <>
-      {at === "start" && <OptionalPart text={optional} />}
-      {main}
-      {at === "end" && (
-        <>
-          {" "}
-          <OptionalPart text={optional} trailing />
-          {end}
-        </>
-      )}
-    </>
-  );
+  const { before, optional, after, at } = splitOptional(sentence);
+  if (at === "start") return (<><OptionalPart text={optional} />{after}</>);
+  if (at === "end") return (<>{before} <OptionalPart text={optional} trailing />{after}</>);
+  return <>{sentence}</>;
 }
 
-// The corrected answer under the learner's words, with the changed words
-// underlined and the optional start in grey.
+// The corrected answer under the learner's words, with the changed words in
+// the main clause underlined and the optional if-part in grey.
 function Corrected({ transcript, sentence }: { transcript: string; sentence: string }) {
-  const { optional, main, at, end } = splitOptional(sentence);
-  const words = wordDiff(transcript, main).filter((p) => p.kind !== "removed");
-  return (
-    <>
-      {at === "start" && <OptionalPart text={optional} />}
-      {words.map((p, i) => (
-        <span key={i} className={p.kind === "added" ? "font-semibold underline" : ""}>
-          {p.word}
-          {i < words.length - 1 || at !== "end" ? " " : ""}
-        </span>
-      ))}
-      {at === "end" && (
-        <>
-          {" "}
-          <OptionalPart text={optional} trailing />
-          {end}
-        </>
-      )}
-    </>
-  );
+  const { before, optional, after, at } = splitOptional(sentence);
+  const underlined = (text: string) => {
+    const words = wordDiff(transcript, text).filter((p) => p.kind !== "removed");
+    return words.map((p, i) => (
+      <span key={i} className={p.kind === "added" ? "font-semibold underline" : ""}>
+        {p.word}
+        {i < words.length - 1 ? " " : ""}
+      </span>
+    ));
+  };
+  if (at === "start") return (<><OptionalPart text={optional} />{underlined(after)}</>);
+  if (at === "end") return (<>{underlined(before)} <OptionalPart text={optional} trailing />{after}</>);
+  return <>{underlined(sentence)}</>;
 }
 
 // Errors don't always come back as JSON (e.g. the live site's "Not found"

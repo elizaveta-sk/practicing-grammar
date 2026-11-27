@@ -82,3 +82,4 @@ Run it with `npm run eval:check`. Results are written to `evals/results/second-c
 | 69 | main | If you could have any job, what job would you like to have? | I would be a pilot if I could have any job. | correct | if at the end, though the question has it first: fine |
 | 70 | main | What would you do if you were invisible for a day? | I will go to the bank if I am invisible. | incorrect | order fine, tenses wrong; correction must include "would go" |
 | 71 | main | Who would you choose to meet if you could meet anyone, dead or alive? | I would meet my grandmother. | correct | correction must include "grandmother (if I could meet anyone |
+| 72 | main | What job would you like to have if you could have any job? | I would be a pilot. I love planes. | correct | extra sentence stays present simple; correction must include "I love planes" |
