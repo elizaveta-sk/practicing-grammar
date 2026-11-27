@@ -349,7 +349,7 @@ export function Session({ topicId, topicName, questions }: { topicId: string; to
           ? "…"
           : repeating
             ? "● Say it again"
-            : "● Answer";
+            : "● Press to answer";
 
   // No full-height layout: the Answer button sits right under the conversation
   // and moves down as it grows, then sticks to the bottom once the screen is full.
