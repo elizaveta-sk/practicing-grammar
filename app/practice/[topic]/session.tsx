@@ -377,6 +377,10 @@ export function Session({
             Words in <span className="opacity-45">grey</span> are optional.
           </li>
         </ol>
+        <p className="rounded-xl bg-blue-50 p-4 text-sm text-black dark:bg-blue-950 dark:text-blue-50">
+          💡 <span className="font-medium">Tip:</span> if you can&apos;t remember a word, just ask: &ldquo;How do you say
+          (…) in English?&rdquo;
+        </p>
         <button onClick={start} className="w-full rounded-full bg-blue-600 px-6 py-4 text-lg font-medium text-white">
           Start ({Math.min(SESSION_LENGTH, questions.length)} questions)
         </button>
