@@ -24,8 +24,8 @@ Speech-to-text and TTS prices weren't checked here. Phase 1 and Phase 3 compare 
 
 ## Phase 0: Setup (≈ half a day)
 - [x] 0.1 Create the Next.js + TypeScript project and a Git repository
-- [ ] 0.2 Create the Supabase project; add the `users` and `sessions` tables
-- [ ] 0.3 Get API keys (Anthropic, STT candidates, TTS) and set a **monthly spending limit** on each account
+- [x] 0.2 Create the Supabase project; add the `users` and `sessions` tables
+- [x] 0.3 Get API keys (Anthropic, STT candidates, TTS) and set a **monthly spending limit** on each account
 - [ ] 0.4 Connect the repository to Vercel; add the keys as environment variables; deploy a "hello" page
 - [x] 0.5 Add the first grammar-bank file (`second-conditional.md`) as sample data
 
@@ -35,19 +35,34 @@ Speech-to-text and TTS prices weren't checked here. Phase 1 and Phase 3 compare 
 - [x] 1.3 Show the transcript on the page
 - [x] 1.4 Add 2–3 providers behind one `transcribe()` function, with a dropdown to switch between them (for testing only)
 - [ ] 1.5 Test on Chrome and on iPhone Safari
-- [ ] 1.6 **Test:** record ~20 sentences with typical Russian and Japanese speaker mistakes (missing articles, *-s*/*-ed* endings, wrong tense, *I'd* vs *I would*). Write down which provider keeps the mistakes. Try a "transcribe verbatim, do not correct grammar" prompt where the provider supports it.
+- [x] 1.6 **Test:** record ~20 sentences with typical Russian and Japanese speaker mistakes (missing articles, *-s*/*-ed* endings, wrong tense, *I'd* vs *I would*). Write down which provider keeps the mistakes. Try a "transcribe verbatim, do not correct grammar" prompt where the provider supports it.
 - [ ] 1.7 Choose the provider and record the cost per minute
 
 **If none keeps the mistakes, stop and rethink before Phase 2.**
 
+### Results, round 1 (2026-11-27: 20 sentences, one speaker using both Russian and Japanese accents, no question context)
+Failures that matter for grading. "Hid" = fixed the learner's mistake, so the app would miss it. "Invented" = created a mistake the learner didn't make, so the app would wrongly correct them. Harmless changes (punctuation, fillers, "5" vs "five", "I'll" vs "I will") aren't counted.
+
+| Provider | Hid | Invented | Garbled | Total /20 |
+|---|---|---|---|---|
+| **ElevenLabs Scribe v2** | 2 | 0 | 0 | **2** |
+| OpenAI gpt-transcribe | 2 | 1 | 1 | 4 |
+| OpenAI gpt-4o-transcribe | 1 | 3 | 1 | 5 |
+| OpenAI whisper-1 | 6 | 0 | 1 | 7 |
+| Deepgram Nova-3 | 4 | 1 | 2 | 7 |
+
+- ElevenLabs was the only one to keep *"If I was invisible, I **will** go"* (target-grammar error). The others changed it to *would*.
+- Every provider hid *"I would like meet"* (added *to*). Both new OpenAI models turned it into transliterated gibberish.
+- **Chosen: ElevenLabs Scribe v2.** Still to do: check the ElevenLabs price per hour, and check transcripts from real students during the Phase 6 trial.
+
 ## Phase 2: Grammar checking
-- [ ] 2.1 Write the checking prompt for each topic. It returns JSON: `targetUsed`, `targetCorrect`, `correctedSentence`, `silentFixes`
+- [x] 2.1 Write the checking prompt for each topic. One call returns `verdict` (correct / incorrect / not_used), `correctedAnswer` and `nextQuestion` (`lib/check.ts`, rules in `lib/topics.ts`)
 - [ ] 2.2 Write a small test set: ~20 answers per topic marked right or wrong by you, covering correct, partial, wrong grammar, grammar not used, and other mistakes
-- [ ] 2.3 Add a script that runs the test set and reports how many answers Haiku 5.5 marks correctly; adjust the prompt until the results are good
-- [ ] 2.4 Prompt for the AI-written **nudge question** (forces the structure)
-- [ ] 2.5 Prompt for the AI-written **conversation follow-up** (uses the structure, natural and short)
-- [ ] 2.6 Check a repeated answer: does the repetition now have the target grammar right? (Any correct version counts.)
-- [ ] 2.7 Log token use per call and calculate the real cost per session
+- [x] 2.3 Add a script that runs the test set and reports how many answers Haiku 5.5 marks correctly; adjust the prompt until the results are good
+- [x] 2.4 Prompt for the AI-written **nudge question** (forces the structure)
+- [x] 2.5 Prompt for the AI-written **conversation follow-up** (uses the structure, natural and short)
+- [x] 2.6 Check a repeated answer: does the repetition now have the target grammar right? (Any correct version counts.)
+- [x] 2.7 Log token use per call and calculate the real cost per session
 
 ## Phase 3: Voice
 - [ ] 3.1 Choose the TTS provider and voice; compare 2 voices on a few sentences

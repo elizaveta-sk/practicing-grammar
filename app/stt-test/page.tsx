@@ -23,6 +23,7 @@ function extensionFor(type: string) {
 
 export default function SttTestPage() {
   const [providers, setProviders] = useState<Provider[]>([]);
+  const [disabled, setDisabled] = useState(false);
   const [provider, setProvider] = useState("all");
   const [expected, setExpected] = useState("");
   const [context, setContext] = useState("");
@@ -42,8 +43,11 @@ export default function SttTestPage() {
 
   useEffect(() => {
     fetch("/api/transcribe")
-      .then((r) => r.json())
-      .then((d) => setProviders(d.providers ?? []))
+      .then(async (r) => {
+        if (r.status === 404) return setDisabled(true); // switched off on the live site
+        const d = await r.json();
+        setProviders(d.providers ?? []);
+      })
       .catch(() => setError("Could not load providers"));
   }, []);
 
@@ -173,8 +177,15 @@ export default function SttTestPage() {
             ))}
           </select>
         </label>
-        {providers.length === 0 && (
-          <p className="text-sm text-amber-600">No API keys found. Add them to .env.local and restart.</p>
+        {disabled ? (
+          <p className="text-sm text-amber-600">
+            This test page is switched off on the live site, because it has no login and uses paid API keys.
+            Use it locally (npm run dev), or set ENABLE_STT_TEST=1 in Vercel for a short test, then remove it.
+          </p>
+        ) : (
+          providers.length === 0 && (
+            <p className="text-sm text-amber-600">No API keys found. Add them to .env.local and restart.</p>
+          )
         )}
 
         <div className="flex flex-wrap items-center gap-3">
