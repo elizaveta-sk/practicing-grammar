@@ -91,7 +91,7 @@ Built and checked with recorded test answers; **owner's full run-through on lapt
 - [ ] 5.5 Write down how to create a learner account in the Supabase dashboard
 
 ## Phase 6: Trial
-- [ ] 6.1 Add the other three grammar-bank files (first conditional ✅, present perfect ✅, third conditional: later)
+- [ ] 6.1 Add the other three grammar-bank files (first conditional ✅, present perfect: built but switched off for now, owner not happy with how it works; third conditional: later)
 - [ ] 6.2 Do a full session yourself on a phone and on a laptop
 - [ ] 6.3 Give accounts to 1–2 students first, then everyone
 - [ ] 6.4 After a week, check the actual costs (from the usage saved in 5.6) and any marking mistakes students report
