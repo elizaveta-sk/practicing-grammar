@@ -2,7 +2,7 @@
 // many verdicts match the answer key, plus the cost.
 // Usage: npm run eval:check -- [topic]   (default: second-conditional)
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { checkAnswer, CHECK_MODEL, type CheckResult, type Mode } from "../lib/check";
+import { checkAnswer, CHECK_EFFORT, CHECK_MODEL, type CheckResult, type Mode } from "../lib/check";
 
 // Claude Haiku 5.5 list prices, USD per million tokens (prompts under 100K tokens).
 const PRICE_IN = 0.1;
@@ -60,7 +60,7 @@ async function main() {
   const cost = (tokensIn * PRICE_IN + tokensOut * PRICE_OUT) / 1e6;
   const avgMs = Math.round(outcomes.reduce((s, o) => s + o.ms, 0) / outcomes.length);
   const summary =
-    `${passed.length}/${outcomes.length} verdicts match · model ${CHECK_MODEL} · ` +
+    `${passed.length}/${outcomes.length} verdicts match · model ${CHECK_MODEL} (effort ${CHECK_EFFORT}) · ` +
     `${tokensIn} in / ${tokensOut} out tokens · $${cost.toFixed(4)} total, ` +
     `$${(cost / outcomes.length).toFixed(5)} per answer · avg ${avgMs} ms per answer`;
 

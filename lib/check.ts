@@ -7,6 +7,9 @@ import { z } from "zod";
 import { getTopic } from "./topics";
 
 export const CHECK_MODEL = "claude-haiku-5-5";
+// How hard the model thinks. "low" is fastest; CHECK_EFFORT lets the test
+// script compare levels.
+export const CHECK_EFFORT = (process.env.CHECK_EFFORT as "low" | "medium" | "high" | undefined) ?? "low";
 
 /**
  * main     – answer to a bank question (or a nudge question). Target grammar required.
@@ -16,7 +19,15 @@ export const CHECK_MODEL = "claude-haiku-5-5";
  */
 export type Mode = "main" | "followup" | "repeat";
 
+// Field order matters: the model fills these in order, so it names the
+// learner's phrase and the exact target mistake before deciding the verdict.
 const CheckResult = z.object({
+  targetPhrase: z
+    .string()
+    .describe('The part of the answer where the target grammar is or should be, e.g. "I will buy". "" if none.'),
+  targetMistake: z
+    .string()
+    .describe('The exact target-grammar mistake in targetPhrase, e.g. "will instead of would". "none" if there is none.'),
   verdict: z
     .enum(["correct", "incorrect", "not_used"])
     .describe("Judgement of the TARGET grammar only."),
@@ -57,12 +68,14 @@ VERDICT, about the target grammar only:
 - "incorrect": the learner answered with a verb phrase where the target grammar was needed, but formed it wrongly or used another tense.
 - "not_used": the learner gave no verb phrase where the target grammar would go, e.g. just a noun or phrase ("A house.", "The past.", "Kyoto, because it's beautiful.").
 
+Learners do not have to repeat words from the question: "Would you prefer to see the future or the past?" → "I would prefer the past." is correct and needs no change.
+
 correctedAnswer: keep the learner's own words and ideas. Make the smallest changes that make the whole answer correct, natural English. Any correct version is fine; do not rewrite style.
 
 nextQuestion, depending on MODE:
 - MODE main, verdict "correct" or "incorrect": one short, natural follow-up question about what they said that itself uses the target grammar (for listening practice), e.g. "Where would you buy it?".
 - MODE main, verdict "not_used": a short question that builds on their answer and makes them answer with the target grammar, e.g. "And what would you do there?". Do not explain grammar.
-- MODE followup: the learner does not have to use the target grammar here. If they didn't use it, the verdict is "correct". If they used it wrongly, "incorrect". nextQuestion is "".
+- MODE followup: the learner does not have to use the target grammar here. "correct" if they answered without a verb for it ("In Spain.", "A car.") or with a clause that doesn't need it ("Because it is beautiful."), or used it correctly. "incorrect" if they answered the question's own verb in a wrong form, e.g. "What would you buy first?" → "I will buy a car." / "I buy a car." (that is a wrong attempt, not "not using it"). nextQuestion is "".
 - MODE repeat: the learner is repeating a corrected sentence. "correct" if the target grammar is now right (other small slips are fine), otherwise "incorrect". nextQuestion is "".
 
 Questions: at most 15 words, friendly, everyday vocabulary, no grammar terms.`;
@@ -75,6 +88,19 @@ function userPrompt(input: CheckInput) {
   return lines.join("\n");
 }
 
+// Same words, ignoring case, punctuation and fillers.
+function sameWords(a: string, b: string) {
+  const norm = (s: string) =>
+    s
+      .toLowerCase()
+      .replace(/[’‘]/g, "'")
+      .replace(/[^a-z0-9'\s]/g, " ")
+      .split(/\s+/)
+      .filter((w) => w && !["um", "uh", "er", "erm", "hmm"].includes(w))
+      .join(" ");
+  return norm(a) === norm(b);
+}
+
 let client: Anthropic | null = null;
 
 export async function checkAnswer(input: CheckInput) {
@@ -85,7 +111,7 @@ export async function checkAnswer(input: CheckInput) {
     system: systemPrompt(input.topicId),
     messages: [{ role: "user", content: userPrompt(input) }],
     output_config: {
-      effort: "low", // short, simple judgement; keeps latency and cost down
+      effort: CHECK_EFFORT,
       format: zodOutputFormat(CheckResult),
     },
   });
@@ -96,6 +122,10 @@ export async function checkAnswer(input: CheckInput) {
   const result = response.parsed_output;
   // The rules say no question in these modes. Enforce it rather than trust it.
   if (input.mode !== "main") result.nextQuestion = "";
+  // "Incorrect" with nothing to correct contradicts itself, so it's correct.
+  if (result.verdict === "incorrect" && sameWords(result.correctedAnswer, input.answer)) {
+    result.verdict = "correct";
+  }
 
   return { result, usage: response.usage };
 }

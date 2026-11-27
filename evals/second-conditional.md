@@ -1,8 +1,7 @@
 # Test set: second conditional
 
 **Please check the "Expected" column.** That is the answer key the checker is graded against.
-Change any label you disagree with. Rows marked ❓ are judgement calls I want you to decide.
-
+Change any label you disagree with. 
 - **Mode:** `main` = answer to a bank question (grammar required) · `followup` = answer to the conversation follow-up (grammar not required) · `repeat` = repeating a correction (the sentence to repeat is in the Question column after `→`)
 - **Expected:** `correct` · `incorrect` (wrong form) · `not_used` (no attempt, e.g. just a noun)
 
@@ -13,7 +12,7 @@ Run it with `npm run eval:check`. Results are written to `evals/results/second-c
 | 1 | main | If you were invisible for a day, what would you do? | I would go to the bank. | correct | |
 | 2 | main | If you were invisible for a day, what would you do? | I'd steal some money from bank. | correct | missing "the" fixed silently |
 | 3 | main | If you were invisible for a day, what would you do? | I will go to the bank. | incorrect | will → would |
-| 4 | main | If you were invisible for a day, what would you do? | I go to the bank. | incorrect | ❓ present simple: "incorrect" (correct it) or "not_used" (nudge)? |
+| 4 | main | If you were invisible for a day, what would you do? | I go to the bank. | incorrect | present simple: needs would (decided) |
 | 5 | main | If you were invisible for a day, what would you do? | The bank. | not_used | |
 | 6 | main | If you were invisible for a day, what would you do? | Maybe I would to travel. | incorrect | would to |
 | 7 | main | If you could live in any city, town, or village in the world, where would you choose? | I would choose Kyoto. | correct | |
@@ -21,7 +20,7 @@ Run it with `npm run eval:check`. Results are written to `evals/results/second-c
 | 9 | main | If you could live in any city, town, or village in the world, where would you choose? | I choose Kyoto. | incorrect | |
 | 10 | main | If you could live in any city, town, or village in the world, where would you choose? | If I could live anywhere, I would choose small village near sea. | correct | articles fixed silently |
 | 11 | main | If you could have any job, what job would you like to have? | I would like to be a pilot. | correct | |
-| 12 | main | If you could have any job, what job would you like to have? | I would like be a pilot. | correct | ❓ "would like" is right, missing "to" is a different mistake → fixed silently. Or "incorrect"? |
+| 12 | main | If you could have any job, what job would you like to have? | I would like be a pilot. | correct | missing "to" is not the target mistake, fixed silently (decided) |
 | 13 | main | If you could have any job, what job would you like to have? | Pilot. | not_used | |
 | 14 | main | If you didn't need sleep, how would you spend your nights? | I would watching movies. | incorrect | |
 | 15 | main | If you didn't need sleep, how would you spend your nights? | I would watched movies. | incorrect | |
@@ -32,11 +31,11 @@ Run it with `npm run eval:check`. Results are written to `evals/results/second-c
 | 20 | main | If you could travel in time, would you prefer to see the future or the past? | I would prefer the past. | correct | |
 | 21 | main | If you could travel in time, would you prefer to see the future or the past? | I would prefer to see past. | correct | article fixed silently |
 | 22 | main | If you were the world's best at something, what would you like to be the world's best at? | I would like to be best at piano. | correct | "the best", "playing" fixed silently |
-| 23 | main | If you were the world's best at something, what would you like to be the world's best at? | I want to be the best at cooking. | incorrect | ❓ "want" instead of "would like": "incorrect" or "not_used"? |
+| 23 | main | If you were the world's best at something, what would you like to be the world's best at? | I want to be the best at cooking. | incorrect | "want" instead of "would like" (decided) |
 | 24 | main | If you could stay one age forever, what age would it be? | It would be 25. | correct | |
 | 25 | main | If you could stay one age forever, what age would it be? | 25. | not_used | |
 | 26 | main | If you could stay one age forever, what age would it be? | It will be 30. | incorrect | |
-| 27 | main | If you could travel in time, would you prefer to see the future or the past? | um the future because I, I want to see robots | incorrect | ❓ fillers ignored; "want" not "would like". Same call as #23 |
+| 27 | main | If you could travel in time, would you prefer to see the future or the past? | um the future because I, I want to see robots | incorrect | fillers ignored; "want" not "would like" |
 | 28 | main | If you won the lottery, what would you do? | if I win lottery I would buy house | incorrect | present in the if-clause |
 | 29 | main | If you won the lottery, what would you do? | If I won the lottery I would buy a house | correct | no punctuation, as from speech-to-text |
 | 30 | followup | Where would you buy a house? | In Spain. | correct | follow-up doesn't require the grammar |
