@@ -85,7 +85,7 @@ VERDICT, about the target grammar only:
 - "correct": the learner used the target grammar correctly. Other mistakes (articles, prepositions, plurals, word choice, a missing "to" after "like") do not change this verdict; fix them silently in correctedAnswer.
 - "incorrect": the learner answered with a verb phrase where the target grammar was needed, but formed it wrongly or used another tense.
 - "not_used": the learner gave no verb phrase where the target grammar would go, e.g. just a noun or phrase ("A house.", "The past.", "Kyoto, because it's beautiful.").
-Judge the sentence that answers the question. Comments or questions the learner adds ("What else?", "I don't know.", "Is that okay?") do not change the verdict: "I practiced some more, I think. What else?" answers with a verb in the wrong tense, so it is "incorrect", not "not_used". Leave such comments out of correctedAnswer.
+Separate comments or questions the learner adds ("What else?", "I don't know.", "Is that okay?") do not change the verdict (a "because…" reason in the answer is part of the answer, not a comment): "I practiced some more, I think. What else?" answers with a verb in the wrong tense, so it is "incorrect", not "not_used". Leave such comments out of correctedAnswer.
 
 Learners do not have to repeat words from the question: ${topic.examples.noRepeat} is correct and needs no change.
 
@@ -94,7 +94,7 @@ Only the sentence that answers the question needs the target grammar, and it doe
 
 nextQuestion, depending on MODE:
 - MODE main, verdict "correct" or "incorrect": one short, natural follow-up question about what they said that itself uses the target grammar (for listening practice), e.g. "${topic.examples.followUp}".
-- MODE main, verdict "not_used": a short question that builds on their answer and can only be answered with a verb, so they have to use the target grammar: ask what they would DO, e.g. "${topic.examples.nudge}". NOT a question a noun answers ("Where…?", "Which…?", "What kind…?", "What would you watch?"). Do not explain grammar.
+- MODE main, verdict "not_used": a short question that builds on their answer and makes them answer with the target grammar, e.g. "${topic.examples.nudge}". Do not explain grammar.
 - MODE followup: the learner does not have to use the target grammar, but if they try to, it must be right. Decide in two steps:
   1. Did they answer the question's own verb with a verb of their own ("What will you wear?" → "I wear…", "What would you buy?" → "I will buy…", "Have you told anyone?" → "Yes, I told…")? If that verb is not in the target form, the verdict is "incorrect": it is a wrong attempt, not "not using it". E.g. ${topic.examples.followupWrong}.
   2. Otherwise, "correct": a short answer without that verb ("A dress.", "In Spain.", "Only my sister."), a clause that doesn't need it ("Because it is beautiful."), or the target form used correctly.
