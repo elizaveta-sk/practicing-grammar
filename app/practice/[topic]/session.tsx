@@ -46,29 +46,36 @@ type Popup =
   | { kind: "meaning"; text: string; previous: Popup }
   | null;
 
-// "(If I could meet anyone,) I would meet…": the bracketed start is optional,
-// so it's shown lighter with a small "optional" label.
+// The checker marks an optional start with brackets: "(If I could meet anyone,)
+// I would meet…". Owner's design: no brackets or label on screen, just grey.
+function OptionalPart({ text }: { text: string }) {
+  return (
+    <>
+      <span className="opacity-45" title="Optional: you can leave this part out">
+        {text}
+      </span>
+      <span className="sr-only"> (optional)</span>{" "}
+    </>
+  );
+}
+
 function Optional({ sentence }: { sentence: string }) {
   const { optional, rest } = splitOptional(sentence);
   return (
     <>
-      {optional && (
-        <span className="opacity-60" title="Optional">
-          ({optional}) <sup className="text-[0.6rem] uppercase tracking-wide">optional</sup>{" "}
-        </span>
-      )}
+      {optional && <OptionalPart text={optional} />}
       {rest}
     </>
   );
 }
 
 // The corrected answer under the learner's words, with the changed words
-// underlined and the optional start shown lighter.
+// underlined and the optional start in grey.
 function Corrected({ transcript, sentence }: { transcript: string; sentence: string }) {
   const { optional, rest } = splitOptional(sentence);
   return (
     <>
-      {optional && <span className="opacity-60">({optional}) </span>}
+      {optional && <OptionalPart text={optional} />}
       {wordDiff(transcript, rest)
         .filter((p) => p.kind !== "removed")
         .map((p, i) => (
@@ -358,6 +365,9 @@ export function Session({
           <li>Listen to the question.</li>
           <li>Press the button, answer out loud, then press it again.</li>
           <li>If there&apos;s a mistake, you&apos;ll see and hear the correct version. Say it again.</li>
+          <li>
+            Words in <span className="opacity-45">grey</span> are optional.
+          </li>
         </ol>
         <button onClick={start} className="w-full rounded-full bg-blue-600 px-6 py-4 text-lg font-medium text-white">
           Start ({Math.min(SESSION_LENGTH, questions.length)} questions)
