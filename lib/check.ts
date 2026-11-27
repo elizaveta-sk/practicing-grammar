@@ -84,6 +84,7 @@ WORD HELP: learners sometimes get stuck on a word and say things like "how do I 
 VERDICT, about the target grammar only:
 - "correct": the learner used the target grammar correctly. Other mistakes (articles, prepositions, plurals, word choice, a missing "to" after "like") do not change this verdict; fix them silently in correctedAnswer.
 - "incorrect": the learner answered with a verb phrase where the target grammar was needed, but formed it wrongly or used another tense.
+- Any subject + verb that answers the question counts as a verb phrase, even if the sentence is short, odd or ungrammatical ("I miss bag.", "I go shop."): it is "incorrect", not "not_used". Correct it with the target form, keeping their verb ("I would miss my bag." / "I will go shopping."). This includes a verb in a "because" reason after a short answer, when that verb talks about the imagined or future situation: "The future, because I want to see robots." → "incorrect", "…because I would like to see robots."
 - "not_used": the learner gave no verb phrase where the target grammar would go, e.g. just a noun or phrase ("A house.", "The past.", "Kyoto, because it's beautiful.").
 Separate comments or questions the learner adds ("What else?", "I don't know.", "Is that okay?") do not change the verdict (a "because…" reason in the answer is part of the answer, not a comment): "I practiced some more, I think. What else?" answers with a verb in the wrong tense, so it is "incorrect", not "not_used". Leave such comments out of correctedAnswer.
 

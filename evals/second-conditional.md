@@ -84,3 +84,5 @@ Run it with `npm run eval:check`. Results are written to `evals/results/second-c
 | 71 | main | Who would you choose to meet if you could meet anyone, dead or alive? | I would meet my grandmother. | correct | correction must include "grandmother (if I could meet anyone |
 | 72 | main | What job would you like to have if you could have any job? | I would be a pilot. I love planes. | correct | extra sentence stays present simple; correction must include "I love planes" |
 | 73 | main | What would you do if you won the lottery? | I would buy a house if I win the lottery. | incorrect | learner's own if-clause (at the end) has the wrong tense: never optional; correction must include "if I won" |
+| 74 | main | What would you do if you were invisible for a day? | One, two. I miss bag | incorrect | from a real session (owner): a subject + verb, however odd, is a wrong attempt, not not_used; correction must include "would" |
+| 75 | main | What would you do if you were invisible for a day? | I go shop. | incorrect | short ungrammatical verb answer is still incorrect; correction must include "would" |

@@ -335,7 +335,12 @@ export function Session({
       return;
     }
     if (popup && "previous" in popup) setPopup(popup.previous);
-    const corrected = data.correctedAnswer && norm(data.correctedAnswer) !== norm(data.transcript) ? data.correctedAnswer : undefined;
+    // No "✓ corrected" line when the grammar wasn't used: the nudge comes instead,
+    // and a fixed-up version of an answer without the grammar looks like approval.
+    const corrected =
+      data.verdict !== "not_used" && data.correctedAnswer && norm(data.correctedAnswer) !== norm(data.transcript)
+        ? data.correctedAnswer
+        : undefined;
     addEntry({ who: "learner", transcript: data.transcript, corrected, wrong: data.verdict === "incorrect" });
 
     if (stage === "main") {
