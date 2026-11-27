@@ -45,3 +45,4 @@ Run it with `npm run eval:check -- first-conditional`.
 | 37 | main | What will you do if you suddenly get a headache? | I lie down if I get a headache. | incorrect | order fine, but present simple instead of will |
 | 38 | main | If there is no coffee at your home tomorrow morning, what will you do? | I drink tea. It's okay for me | incorrect | from a real session (owner): only the answer needs will, the general fact stays present; correction must include "It's okay for me" |
 | 39 | main | What will you eat if you are hungry when you get home tonight? | I'll make pasta. I love Italian food. | correct | extra opinion stays present simple; correction must include "I love Italian food" |
+| 40 | main | What will you eat if you are hungry when you get home tonight? | I'll make pasta if I will be hungry. | incorrect | learner's own if-clause has "will": never optional; correction must include "if I am hungry" |

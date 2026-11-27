@@ -19,6 +19,10 @@ export type Topic = {
     /** An answer that needn't repeat the question's words. */
     noRepeat: string;
   };
+  /** The form every question the app asks must use, for the question reviewer. */
+  formHint?: string;
+  /** A question the app asks must contain this (checked after the question reviewer). */
+  formPattern?: RegExp;
   /** Reminder shown when the grammar wasn't used. Default: "Remember to use the <name>." */
   nudgeText?: string;
   /** Extra instruction for how correctedAnswer is written for this topic. */
@@ -73,7 +77,7 @@ export const TOPICS: Record<string, Topic> = {
     rule:
       "Imaginary or unlikely situations in the present/future. Result clause: would/could/might + base verb " +
       "(\"I would buy\", \"I'd buy\", \"I would like to be\", \"it would be\"). Condition clause, if the learner " +
-      "includes one: if + past simple (\"if I won\", \"if I had\", \"if I were/was\"), before or after the result: \"If I won, I would…\" and \"I would… if I won\" are both correct. A short answer with only the " +
+      "includes one: if + past simple (\"if I won\", \"if I had\", \"if I were/was\"), before or after the result: \"If I won, I would…\" and \"I would… if I won\" are both correct. When the learner says an if-clause, its verb is part of the target grammar: \"if I win lottery, I would buy a house\" is incorrect (if-clause needs past simple) even though the result is right, and the learner's own if-clause is NEVER put in brackets. A short answer with only the " +
       "result clause (\"I would buy a house.\") fully counts as correct use. The questions need \"would\": any " +
       "answer with a verb but without would/could/might in the result is incorrect. Mistakes AFTER a correct " +
       "\"would + verb\" are not target mistakes: \"I would like be a pilot\" is correct (the missing \"to\" is " +
@@ -97,6 +101,8 @@ export const TOPICS: Record<string, Topic> = {
       followupWrong: '"What would you buy first?" → "I will buy a car." / "I buy a car."',
       noRepeat: '"Would you prefer to see the future or the past?" → "I would prefer the past."',
     },
+    formHint: '"would" + verb, e.g. "How would you relax afterwards?"',
+    formPattern: /\b(would|could|might)\b|\w'd\b/i,
     // Owner's request: always show the whole pattern, with the if-clause marked optional.
     correctionStyle:
       "If the learner left out the if-clause, add it in round brackets, built from the question, in the SAME " +
@@ -116,7 +122,7 @@ TOPICS["first-conditional"] = {
     "Real or likely situations in the future. Result clause: will/'ll + base verb (\"I will eat\", \"I'll call\"). " +
     "These also count as correct (owner's decision): be going to + verb (\"I'm going to call\"), might / may / can + " +
     "base verb (\"I might stay home\", \"I can go to the gym\"). Condition clause, if the learner includes one: " +
-    "if + present simple (\"if I'm hungry\", \"if it rains\", \"if my ex calls me\"), before or after the result: \"If it rains, I'll…\" and \"I'll… if it rains\" are both correct. A short answer with only the " +
+    "if + present simple (\"if I'm hungry\", \"if it rains\", \"if my ex calls me\"), before or after the result: \"If it rains, I'll…\" and \"I'll… if it rains\" are both correct. When the learner says an if-clause, its verb is part of the target grammar: \"if I will be hungry, I'll make pasta\" is incorrect even though the result is right, and the learner's own if-clause is NEVER put in brackets. A short answer with only the " +
     "result clause (\"I'll make pasta.\") fully counts as correct use. The questions need a future form: any answer " +
     "with a verb but without will / going to / might / may / can in the result is incorrect. Mistakes AFTER a " +
     "correct \"will + verb\" are not target mistakes: \"I'll go to shop\" is correct (the missing \"the\" is " +
@@ -134,6 +140,8 @@ TOPICS["first-conditional"] = {
     followupWrong: '"What will you cook first?" → "I would cook pasta." / "I cook pasta."',
     noRepeat: '"What will you do if you suddenly get a headache?" → "I\'ll take a pill."',
   },
+  formHint: '"will" + verb, e.g. "How will you relax afterwards?" (never "would")',
+  formPattern: /\b(will|going to|might|may|can)\b|\w'll\b/i,
   correctionStyle:
     "If the learner left out the if-clause, add it in round brackets, built from the question and said by the " +
     "learner, in the SAME place as in the question: at the end for \"What will you…if you…?\" questions (\"I'll " +

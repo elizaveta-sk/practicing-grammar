@@ -1,6 +1,7 @@
 // One learner turn: speech-to-text, then the grammar check, in a single
 // round trip so the learner waits as little as possible.
 import { checkAnswer, type Mode } from "@/lib/check";
+import { reviewQuestion } from "@/lib/review-question";
 import { transcribe } from "@/lib/stt";
 import { testRoutesDisabled } from "@/lib/test-gate";
 import { TOPICS } from "@/lib/topics";
@@ -36,6 +37,18 @@ export async function POST(request: Request) {
     if (result.askedToRepeat) return Response.json({ transcript, askedToRepeat: true });
     if (result.meaningHelp) return Response.json({ transcript, meaningHelp: result.meaningHelp });
     if (result.wordHelp) return Response.json({ transcript, wordHelp: result.wordHelp });
+
+    // A second model checks the next question fits the conversation (owner's request).
+    if (result.nextQuestion) {
+      const review = await reviewQuestion({
+        topicId,
+        kind: result.verdict === "not_used" ? "nudge" : "followup",
+        asked: question,
+        answer: transcript,
+        proposed: result.nextQuestion,
+      }).catch(() => null); // if the review fails, ask the original question
+      if (review) result.nextQuestion = review.question;
+    }
     return Response.json({
       transcript,
       verdict: result.verdict,

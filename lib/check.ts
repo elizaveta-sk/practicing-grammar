@@ -4,7 +4,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { z } from "zod";
-import { splitOptional, withoutOptional } from "./diff";
+import { splitOptional, withoutOptional, wordDiff } from "./diff";
 import { getTopic } from "./topics";
 
 export const CHECK_MODEL = "claude-haiku-5-5";
@@ -100,7 +100,7 @@ nextQuestion, depending on MODE:
   nextQuestion is "".
 - MODE repeat: the learner is repeating a corrected sentence. A part in round brackets is optional: leaving it out is fine. "correct" if the target grammar is now right (other small slips are fine), otherwise "incorrect". nextQuestion is "".
 
-Questions: at most 15 words, friendly, everyday vocabulary, no grammar terms.`;
+Questions: at most 15 words, friendly, everyday vocabulary, no grammar terms. Keep it kind and positive: if the situation is stressful or upsetting (a fight, danger, illness, a break-up, a bad grade), don't dig into the bad moment; move to a good ending (relaxing or feeling better afterwards, someone to talk to), still in the target grammar. Never ask the obvious ("Run away and do what?").`;
 }
 
 function userPrompt(input: CheckInput) {
@@ -137,6 +137,26 @@ export function placeOptionalIf(corrected: string, question: string, clause: str
   const punct = m ? m[2] : ".";
   const restOf = m?.[3] ?? "";
   return `${first} (${clause.charAt(0).toLowerCase()}${clause.slice(1)})${punct}${restOf}`;
+}
+
+const SMALL_WORDS = new Set(["a", "an", "the", "to"]);
+const FILLERS = new Set(["um", "uh", "er", "erm", "hmm", "mm"]);
+
+/** True when `corrected` only adds articles or "to" to `answer` (fillers aside). */
+export function onlySmallWordsAdded(answer: string, corrected: string) {
+  const parts = wordDiff(answer, corrected);
+  let added = 0;
+  for (let i = 0; i < parts.length; i++) {
+    const p = parts[i];
+    const word = p.word.toLowerCase().replace(/[^a-z']/g, "");
+    if (p.kind === "removed" && !FILLERS.has(word)) return false;
+    if (p.kind === "added") {
+      // "going to" is a target form in the first conditional, so "going buy" -> "going to buy" counts.
+      if (!SMALL_WORDS.has(word) || (word === "to" && parts[i - 1]?.word.toLowerCase() === "going")) return false;
+      added++;
+    }
+  }
+  return added > 0;
 }
 
 // Same words, ignoring case, punctuation, fillers and optional (bracketed) parts.
@@ -184,6 +204,10 @@ export async function checkAnswer(input: CheckInput) {
   if (input.mode !== "main") result.nextQuestion = "";
   // Grammar isn't required in follow-ups, so "not used" there means fine.
   if (input.mode === "followup" && result.verdict === "not_used") result.verdict = "correct";
+  // The learner said their own if-clause: it's part of what's checked, never
+  // the grey optional part, so remove any brackets the checker put around it.
+  if (/\bif\b/i.test(input.answer)) result.correctedAnswer = result.correctedAnswer.replace(/\(([^)]*)\)/g, "$1");
+
   // The optional if-part is the owner's rule, so don't leave it to chance:
   // make sure it's there and in the question's order.
   if (input.mode === "main" && topic.optionalIf && !/\bif\b/i.test(input.answer)) {
@@ -195,6 +219,13 @@ export async function checkAnswer(input: CheckInput) {
     const corrected = result.correctedAnswer.trim();
     const start = topic.modelStart(input.question, input.answer);
     if (start && corrected && !/^\W*(yes|no)\b/i.test(corrected)) result.correctedAnswer = `${start} ${corrected}`;
+  }
+
+  // A correction that only adds small words ("a", "the", a missing "to" after
+  // "like") isn't fixing the target grammar (owner: "I would like be a pilot"
+  // is correct, fixed silently). The checker sometimes forgets that.
+  if (result.verdict === "incorrect" && onlySmallWordsAdded(input.answer, withoutOptional(result.correctedAnswer))) {
+    result.verdict = "correct";
   }
 
   // "Incorrect" with nothing to correct contradicts itself, so it's correct.
