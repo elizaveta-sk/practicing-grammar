@@ -176,6 +176,12 @@ export function Session({
     return url;
   }
 
+  // Owner's rule: the grey optional start isn't part of the correction, so the
+  // voice reads only the rest ("I will work out every day", not "If you pay…").
+  function sayCorrection(sentence: string) {
+    return speak(splitOptional(sentence).rest);
+  }
+
   /** Audio for a line of text, generated once and then cached. */
   async function speechUrl(text: string) {
     let url = spokenCache.current.get(`${voice}|${text}`);
@@ -253,7 +259,7 @@ export function Session({
     setRepeatTries(0);
     setStage(next);
     setPopup({ kind: "correction", sentence, triesLeft: MAX_REPEATS });
-    speak(sentence);
+    sayCorrection(sentence);
   }
 
   async function handleRecording(r: Recording) {
@@ -286,7 +292,7 @@ export function Session({
     // or the question). Not graded and doesn't use up a try.
     if (data.askedToRepeat) {
       addEntry({ who: "learner", transcript: data.transcript, wrong: false });
-      if (popup?.kind === "correction") return speak(popup.sentence);
+      if (popup?.kind === "correction") return sayCorrection(popup.sentence);
       const lastBot = [...log].reverse().find((e) => e.who === "bot");
       if (lastBot?.who === "bot" && lastBot.audioUrl) return play(lastBot.audioUrl);
       return speak(currentQuestion);
@@ -346,7 +352,7 @@ export function Session({
     if (tries < MAX_REPEATS) {
       setRepeatTries(tries);
       setPopup({ kind: "correction", sentence: repeatTarget, triesLeft: MAX_REPEATS - tries });
-      return speak(repeatTarget);
+      return sayCorrection(repeatTarget);
     }
     addEntry({ who: "note", text: "Good try! Let's move on." });
     after();
@@ -463,7 +469,7 @@ export function Session({
               <Optional sentence={popup.sentence} />
             </p>
             <div className="mt-2 flex items-center justify-between text-sm">
-              <button onClick={() => speak(popup.sentence)} className="underline">
+              <button onClick={() => sayCorrection(popup.sentence)} className="underline">
                 🔊 Listen again
               </button>
               <span className="opacity-70">
