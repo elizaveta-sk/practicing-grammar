@@ -36,6 +36,30 @@ function describeError(e: unknown) {
   return `Could not start recording. (${detail})`;
 }
 
+type MeterRefs = {
+  ctx: { current: AudioContext | null };
+  analyser: { current: AnalyserNode | null };
+  metered: { current: MediaStream | null };
+};
+
+// Connects the level meter for the mic button's ring. Only decoration, so any
+// failure is ignored.
+function connectMeter(refs: MeterRefs, stream: MediaStream) {
+  try {
+    refs.ctx.current ??= new AudioContext();
+    const ctx = refs.ctx.current;
+    if (ctx.state === "suspended") ctx.resume().catch(() => {});
+    if (refs.metered.current === stream) return;
+    const analyser = ctx.createAnalyser();
+    analyser.fftSize = 512;
+    ctx.createMediaStreamSource(stream).connect(analyser);
+    refs.analyser.current = analyser;
+    refs.metered.current = stream;
+  } catch {
+    refs.analyser.current = null;
+  }
+}
+
 export function useRecorder({
   onRecorded,
   maxSeconds = 30,
@@ -52,6 +76,10 @@ export function useRecorder({
   const chunksRef = useRef<Blob[]>([]);
   const startedAtRef = useRef(0);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Voice level for the mic button's ring (an AnalyserNode on the open stream).
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const meteredRef = useRef<MediaStream | null>(null);
   const onRecordedRef = useRef(onRecorded);
   useEffect(() => {
     onRecordedRef.current = onRecorded;
@@ -62,6 +90,7 @@ export function useRecorder({
     () => () => {
       if (timerRef.current) clearTimeout(timerRef.current);
       streamRef.current?.getTracks().forEach((t) => t.stop());
+      audioCtxRef.current?.close().catch(() => {});
     },
     [],
   );
@@ -83,6 +112,7 @@ export function useRecorder({
         setMicLabel(stream.getAudioTracks()[0]?.label ?? "");
         await new Promise((r) => setTimeout(r, 500)); // warm-up on first use
       }
+      connectMeter({ ctx: audioCtxRef, analyser: analyserRef, metered: meteredRef }, stream);
       let mimeType = pickMimeType();
       let recorder: MediaRecorder;
       try {
@@ -116,5 +146,16 @@ export function useRecorder({
     }
   }, [maxSeconds, stop]);
 
-  return { state, error, setError, micLabel, start, stop };
+  /** How loud the learner is right now, 0..1 (0 if the meter isn't available). */
+  const getLevel = useCallback(() => {
+    const analyser = analyserRef.current;
+    if (!analyser) return 0;
+    const data = new Uint8Array(analyser.fftSize);
+    analyser.getByteTimeDomainData(data);
+    let sum = 0;
+    for (const v of data) sum += ((v - 128) / 128) ** 2;
+    return Math.min(1, Math.sqrt(sum / data.length) * 5);
+  }, []);
+
+  return { state, error, setError, micLabel, start, stop, getLevel };
 }

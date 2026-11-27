@@ -1,28 +1,67 @@
 @import "tailwindcss";
 
+/* Design tokens: cool paper, deep ink, indigo for the app's voice, honey for
+   corrections, leaf green for "well done". */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --paper: #f6f7fb;
+  --card: #ffffff;
+  --ink: #1c2233;
+  --muted: #5d6478;
+  --line: #e3e6f0;
+  --voice: #4c46e0;
+  --voice-soft: #ebeafd;
+  --honey: #f2b33d;
+  --honey-soft: #fff5df;
+  --honey-ink: #7a5208;
+  --leaf: #2e9c6a;
+  --danger: #c8372d;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --paper: #10142a;
+    --card: #1a2040;
+    --ink: #e8eaf6;
+    --muted: #a3a9c4;
+    --line: #2b3260;
+    --voice: #8c87ff;
+    --voice-soft: #262b5c;
+    --honey: #f2b33d;
+    --honey-soft: #3a2e14;
+    --honey-ink: #f7cf7d;
+    --leaf: #4fc08d;
+    --danger: #ff7a6e;
   }
 }
 
+@theme inline {
+  --color-paper: var(--paper);
+  --color-card: var(--card);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-voice: var(--voice);
+  --color-voice-soft: var(--voice-soft);
+  --color-honey: var(--honey);
+  --color-honey-soft: var(--honey-soft);
+  --color-honey-ink: var(--honey-ink);
+  --color-leaf: var(--leaf);
+  --color-danger: var(--danger);
+  /* Kept so older class names (bg-background) still work. */
+  --color-background: var(--paper);
+  --color-foreground: var(--ink);
+  --font-sans: var(--font-figtree);
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-figtree), system-ui, sans-serif;
+}
+
+:focus-visible {
+  outline: 2px solid var(--voice);
+  outline-offset: 2px;
 }
 
 /* New conversation lines grow into place, so the Answer button below them
@@ -43,8 +82,27 @@ body {
   overflow: hidden;
   animation: entry-in 0.45s ease-out;
 }
+
+/* Pop-ups (correction, word help) rise from the bottom like a sheet. */
+@keyframes sheet-in {
+  from {
+    transform: translateY(12px);
+    opacity: 0;
+  }
+}
+.sheet-in {
+  animation: sheet-in 0.3s ease-out;
+}
+
+/* The mic's ring follows the learner's voice (--level 0..1, set from JS). */
+.mic-ring {
+  transform: scale(calc(1 + var(--level, 0) * 0.55));
+  transition: transform 90ms linear;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .entry-in {
+  .entry-in,
+  .sheet-in {
     animation: none;
   }
 }

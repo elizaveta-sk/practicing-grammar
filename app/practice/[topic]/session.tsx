@@ -3,6 +3,7 @@
 //   main answer (grammar required)
 //     correct   -> follow-up question
 //     not_used  -> "Remember to use…" + nudge question, repeated until used
+//   no session length: the bank is reshuffled when it runs out
 //     incorrect -> correction (text + voice), learner repeats it (2 tries) -> follow-up
 //   follow-up answer (grammar not required)
 //     used wrongly -> correction, repeat (2 tries) -> next bank question
@@ -15,7 +16,6 @@ import { useVoice } from "@/lib/voice-choice";
 
 export type BankQuestion = { text: string; audio: Record<string, string | null> };
 
-const SESSION_LENGTH = 10;
 const MAX_REPEATS = 2;
 
 type Stage = "main" | "repeat" | "followup" | "followupRepeat";
@@ -62,7 +62,7 @@ function OptionalPart({ text, trailing = false }: { text: string; trailing?: boo
 // A friendly speech bubble for the word-help tip.
 function ChatIcon() {
   return (
-    <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white" aria-hidden>
+    <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-voice text-white" aria-hidden>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-4">
         <path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12Z" />
         <path d="M9 10.5h.01M12 10.5h.01M15 10.5h.01" strokeWidth="2.6" />
@@ -140,7 +140,6 @@ export function Session({
   const voice = useVoice();
 
   const [started, setStarted] = useState(false);
-  const [done, setDone] = useState(false);
   const [order, setOrder] = useState<BankQuestion[]>([]);
   const [qIndex, setQIndex] = useState(0);
   const [stage, setStage] = useState<Stage>("main");
@@ -231,14 +230,16 @@ export function Session({
 
   function start() {
     audioRef.current = new Audio();
-    const picked = shuffle(questions).slice(0, SESSION_LENGTH);
+    const picked = shuffle(questions);
     setOrder(picked);
     setStarted(true);
     askBank(0, picked);
   }
 
+  // No session length (owner): learners practise as long as they like. When
+  // the bank runs out, it's shuffled again (not starting with the last question).
   function askBank(i: number, list: BankQuestion[]) {
-    const q = list[i];
+    const q = list[i % list.length];
     setQIndex(i);
     setStage("main");
     setNudged(false);
@@ -250,12 +251,14 @@ export function Session({
   function nextBank() {
     const n = qIndex + 1;
     setPopup(null);
-    if (n >= order.length) {
-      setDone(true);
-      addEntry({ who: "note", text: "That's all 10 questions. Great work!" });
-      return;
+    let list = order;
+    if (n % order.length === 0) {
+      const last = order[order.length - 1];
+      list = shuffle(questions);
+      if (list.length > 1 && list[0] === last) list.push(list.shift()!);
+      setOrder(list);
     }
-    askBank(n, order);
+    askBank(n, list);
   }
 
   function goFollowUp(question: string) {
@@ -381,27 +384,42 @@ export function Session({
 
   if (!started) {
     return (
-      <main className="mx-auto w-full max-w-xl px-4 py-10 space-y-6">
-        <Link href="/practice" className="text-sm underline opacity-70">
-          ← Topics
-        </Link>
-        <h1 className="text-2xl font-semibold">{topicName}</h1>
-        <ol className="list-decimal space-y-1 pl-5 opacity-80">
-          <li>Listen to the question.</li>
-          <li>Press the button, answer out loud, then press it again.</li>
-          <li>If there&apos;s a mistake, you&apos;ll see and hear the correct version. Say it again.</li>
-          <li>
-            Words in <span className="opacity-45">grey</span> are optional.
+      <main className="mx-auto w-full max-w-xl space-y-8 px-4 py-10">
+        <BackLink />
+        <h1 className="text-3xl font-bold tracking-tight">{topicName}</h1>
+        <ol className="space-y-3">
+          {[
+            "Listen to the question.",
+            "Press the button, answer out loud, then press it again.",
+            "If there's a mistake, you'll see and hear the correct version. Say it again.",
+          ].map((text, i) => (
+            <li key={i} className="flex gap-3">
+              <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-voice-soft text-sm font-semibold text-voice">
+                {i + 1}
+              </span>
+              <span className="pt-0.5">{text}</span>
+            </li>
+          ))}
+          <li className="flex gap-3">
+            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-voice-soft text-sm font-semibold text-voice">
+              4
+            </span>
+            <span className="pt-0.5">
+              Words in <span className="opacity-45">grey</span> are optional.
+            </span>
           </li>
         </ol>
-        <p className="flex items-start gap-3 rounded-2xl bg-blue-50 p-4 text-sm text-black dark:bg-blue-950 dark:text-blue-50">
+        <p className="flex items-center gap-3 rounded-2xl bg-voice-soft p-4 text-sm">
           <ChatIcon />
           <span>
-            <span className="font-medium">Tip:</span> forgot a word? Say: &ldquo;How do I say this in English…&rdquo;
+            <span className="font-semibold">Tip:</span> forgot a word? Say: &ldquo;How do I say this in English…&rdquo;
           </span>
         </p>
-        <button onClick={start} className="w-full rounded-full bg-blue-600 px-6 py-4 text-lg font-medium text-white">
-          Start ({Math.min(SESSION_LENGTH, questions.length)} questions)
+        <button
+          onClick={start}
+          className="w-full rounded-full bg-voice px-6 py-4 text-lg font-semibold text-white shadow-lg shadow-voice/25 transition-transform active:scale-[0.98]"
+        >
+          Start
         </button>
       </main>
     );
@@ -411,74 +429,60 @@ export function Session({
   const repeating = stage === "repeat" || stage === "followupRepeat";
   const buttonLabel =
     recorder.state === "recording"
-      ? "■ Stop"
+      ? "Stop"
       : checking
         ? "Checking…"
         : recorder.state === "starting"
-          ? "…"
+          ? "One moment…"
           : repeating
-            ? "● Say it again"
-            : "● Press to answer";
+            ? "Say it again"
+            : "Press to answer";
 
   // No full-height layout: the Answer button sits right under the conversation
   // and moves down as it grows, then sticks to the bottom once the screen is full.
   return (
     <main className="mx-auto w-full max-w-xl px-4">
-      <header className="sticky top-0 z-10 space-y-2 bg-background py-3">
-        <div className="flex items-center justify-between text-sm">
-          <Link href="/practice" className="underline opacity-70">
-            ← Topics
-          </Link>
-          <span className="font-medium">{topicName}</span>
-          <span className="tabular-nums opacity-70">
-            {Math.min(qIndex + 1, order.length)} / {order.length}
-          </span>
-        </div>
-        <div className="h-1.5 overflow-hidden rounded-full bg-current/10">
-          <div
-            className="h-full bg-blue-600 transition-all"
-            style={{ width: `${((done ? order.length : qIndex) / order.length) * 100}%` }}
-          />
-        </div>
+      <header className="sticky top-0 z-10 flex items-center justify-between border-b border-line bg-paper/90 py-3 text-sm backdrop-blur">
+        <BackLink />
+        <span className="font-semibold">{topicName}</span>
+        <span className="tabular-nums text-muted">Question {qIndex + 1}</span>
       </header>
 
-      <ol className="space-y-3 py-4">
+      <ol className="space-y-4 py-5">
         {log.map((e) =>
           e.who === "bot" ? (
-            <li key={e.id} className="entry-in mr-10 rounded-2xl rounded-tl-sm bg-current/5 px-4 py-3">
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => (e.audioUrl ? play(e.audioUrl) : speak(e.text))}
-                  className="rounded-full bg-blue-600 px-3 py-1 text-sm text-white"
-                  aria-label="Play again"
-                >
-                  🔊
-                </button>
+            <li key={e.id} className="entry-in mr-10 flex items-start gap-3">
+              <button
+                onClick={() => (e.audioUrl ? play(e.audioUrl) : speak(e.text))}
+                className="flex size-10 shrink-0 items-center justify-center rounded-full bg-voice text-white shadow-md shadow-voice/25 transition-transform active:scale-95"
+                aria-label="Play again"
+              >
+                <SpeakerIcon />
+              </button>
+              <div className="min-h-10 rounded-2xl rounded-tl-md bg-card px-4 py-2.5 shadow-sm ring-1 ring-line">
                 {shown.has(e.id) ? (
                   <span>{e.text}</span>
                 ) : (
-                  <button onClick={() => setShown((s) => new Set(s).add(e.id))} className="text-sm underline opacity-70">
+                  <button onClick={() => setShown((s) => new Set(s).add(e.id))} className="text-sm font-medium text-voice">
                     Show the question
                   </button>
                 )}
               </div>
             </li>
           ) : e.who === "learner" ? (
-            <li key={e.id} className="entry-in ml-10 rounded-2xl rounded-tr-sm border border-current/15 px-4 py-3">
+            <li key={e.id} className="entry-in ml-12 rounded-2xl rounded-tr-md bg-voice-soft px-4 py-3">
               <p>{e.transcript}</p>
               {e.corrected && (
-                <p
-                  className={`mt-1 text-sm ${
-                    e.wrong ? "text-amber-700 dark:text-amber-400" : "text-green-700 dark:text-green-400"
-                  }`}
-                >
-                  {e.wrong ? "✗ " : "✓ "}
-                  <Corrected transcript={e.transcript} sentence={e.corrected} />
+                <p className={`mt-1.5 flex gap-1.5 text-sm ${e.wrong ? "text-honey-ink" : "text-leaf"}`}>
+                  <span aria-hidden className="font-bold">{e.wrong ? "✗" : "✓"}</span>
+                  <span>
+                    <Corrected transcript={e.transcript} sentence={e.corrected} />
+                  </span>
                 </p>
               )}
             </li>
           ) : (
-            <li key={e.id} className="entry-in text-center text-sm opacity-70">
+            <li key={e.id} className="entry-in text-center text-sm font-medium text-leaf">
               {e.text}
             </li>
           ),
@@ -486,76 +490,175 @@ export function Session({
         <div ref={endRef} />
       </ol>
 
-      <footer className="sticky bottom-0 space-y-3 bg-background pb-6 pt-2">
+      <footer className="sticky bottom-0 space-y-4 bg-paper pb-6 pt-2">
         {popup?.kind === "correction" && (
-          <div className="rounded-xl border-2 border-amber-500 bg-amber-50 p-4 text-black dark:bg-amber-950 dark:text-amber-50">
-            <p className="text-sm font-medium">Try this:</p>
-            <p className="mt-1 text-lg">
+          <Sheet tone="honey" title="Try this:" onListen={() => sayCorrection(popup.sentence)}>
+            <p className="text-lg">
               <Optional sentence={popup.sentence} />
             </p>
-            <div className="mt-2 text-sm">
-              <button onClick={() => sayCorrection(popup.sentence)} className="underline">
-                🔊 Listen again
-              </button>
-            </div>
-          </div>
+          </Sheet>
         )}
         {popup?.kind === "word" && (
-          <div className="rounded-xl border-2 border-violet-500 bg-violet-50 p-4 text-black dark:bg-violet-950 dark:text-violet-50">
-            <p className="text-sm font-medium">💬 In English you can say:</p>
-            <p className="mt-1 text-lg font-semibold">{popup.phrase}</p>
-            <div className="mt-2 flex items-center justify-between text-sm">
-              <button onClick={() => speak(`You can say: ${popup.phrase}.`)} className="underline">
-                🔊 Listen again
-              </button>
-              <span className="opacity-70">Now try your answer again</span>
-            </div>
-          </div>
+          <Sheet
+            tone="voice"
+            title="In English you can say:"
+            onListen={() => speak(`You can say: ${popup.phrase}.`)}
+            note="Now try your answer again"
+          >
+            <p className="text-lg font-semibold">{popup.phrase}</p>
+          </Sheet>
         )}
         {popup?.kind === "meaning" && (
-          <div className="rounded-xl border-2 border-violet-500 bg-violet-50 p-4 text-black dark:bg-violet-950 dark:text-violet-50">
-            <p className="text-sm font-medium">📖 What it means:</p>
-            <p className="mt-1 text-lg">{popup.text}</p>
-            <div className="mt-2 flex items-center justify-between text-sm">
-              <button onClick={() => speak(popup.text)} className="underline">
-                🔊 Listen again
-              </button>
-              <span className="opacity-70">Now answer the question</span>
-            </div>
-          </div>
+          <Sheet tone="voice" title="What it means:" onListen={() => speak(popup.text)} note="Now answer the question">
+            <p className="text-lg">{popup.text}</p>
+          </Sheet>
         )}
         {popup?.kind === "nudge" && (
-          <div className="rounded-xl border-2 border-blue-500 bg-blue-50 p-4 text-black dark:bg-blue-950 dark:text-blue-50">
-            <p className="font-medium">💡 {popup.text}</p>
+          <div className="sheet-in flex items-center gap-3 rounded-2xl bg-voice-soft p-4">
+            <ChatIcon />
+            <p className="font-medium">{popup.text}</p>
           </div>
         )}
 
         {tapToPlay && (
-          <button onClick={() => play(tapToPlay)} className="w-full rounded-full border border-blue-600 px-4 py-2 text-blue-600">
+          <button onClick={() => play(tapToPlay)} className="w-full rounded-full border border-voice px-4 py-2 font-medium text-voice">
             ▶ Tap to listen
           </button>
         )}
-        {(turnError || recorder.error) && <p className="text-sm text-red-600">{turnError || recorder.error}</p>}
+        {(turnError || recorder.error) && <p className="text-center text-sm text-danger">{turnError || recorder.error}</p>}
 
-        {done ? (
-          <div className="space-y-3 text-center">
-            <p className="text-xl font-semibold">🎉 Session complete</p>
-            <Link href="/practice" className="inline-block rounded-full bg-blue-600 px-6 py-3 text-white">
-              Back to topics
-            </Link>
-          </div>
-        ) : (
-          <button
-            onClick={() => (recorder.state === "recording" ? recorder.stop() : recorder.start())}
-            disabled={busy}
-            className={`w-full rounded-full px-6 py-4 text-lg font-medium text-white disabled:opacity-50 ${
-              recorder.state === "recording" ? "animate-pulse bg-red-600" : "bg-blue-600"
-            }`}
-          >
-            {buttonLabel}
-          </button>
-        )}
+        <MicButton
+          recording={recorder.state === "recording"}
+          busy={busy}
+          checking={checking}
+          label={buttonLabel}
+          getLevel={recorder.getLevel}
+          onPress={() => (recorder.state === "recording" ? recorder.stop() : recorder.start())}
+        />
       </footer>
     </main>
+  );
+}
+
+// ---- pieces -----------------------------------------------------------------
+
+function BackLink() {
+  return (
+    <Link href="/practice" className="inline-flex items-center gap-1 text-sm font-medium text-muted hover:text-ink">
+      <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d="m15 6-6 6 6 6" />
+      </svg>
+      Topics
+    </Link>
+  );
+}
+
+function SpeakerIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M11 5 6 9H3v6h3l5 4V5Z" fill="currentColor" />
+      <path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13" />
+    </svg>
+  );
+}
+
+// A pop-up that rises from the bottom: correction (honey) or word help (indigo).
+function Sheet({
+  tone,
+  title,
+  onListen,
+  note,
+  children,
+}: {
+  tone: "honey" | "voice";
+  title: string;
+  onListen: () => void;
+  note?: string;
+  children: React.ReactNode;
+}) {
+  const box = tone === "honey" ? "bg-honey-soft ring-honey" : "bg-voice-soft ring-voice/40";
+  const accent = tone === "honey" ? "text-honey-ink" : "text-voice";
+  return (
+    <div className={`sheet-in rounded-2xl p-4 ring-2 ${box}`}>
+      <p className={`text-sm font-semibold ${accent}`}>{title}</p>
+      <div className="mt-1">{children}</div>
+      <div className="mt-3 flex items-center justify-between text-sm">
+        <button onClick={onListen} className={`inline-flex items-center gap-1.5 font-medium ${accent}`}>
+          <SpeakerIcon />
+          Listen again
+        </button>
+        {note && <span className="text-muted">{note}</span>}
+      </div>
+    </div>
+  );
+}
+
+// The big round answer button. While recording, a soft ring grows and shrinks
+// with the learner's voice, so they can see the app is listening.
+function MicButton({
+  recording,
+  busy,
+  checking,
+  label,
+  getLevel,
+  onPress,
+}: {
+  recording: boolean;
+  busy: boolean;
+  checking: boolean;
+  label: string;
+  getLevel: () => number;
+  onPress: () => void;
+}) {
+  const ringRef = useRef<HTMLSpanElement | null>(null);
+  useEffect(() => {
+    const ring = ringRef.current;
+    if (!recording || !ring) return;
+    let frame = 0;
+    let smooth = 0;
+    const tick = () => {
+      smooth = smooth * 0.7 + getLevel() * 0.3;
+      ring.style.setProperty("--level", smooth.toFixed(3));
+      frame = requestAnimationFrame(tick);
+    };
+    tick();
+    return () => {
+      cancelAnimationFrame(frame);
+      ring.style.setProperty("--level", "0");
+    };
+  }, [recording, getLevel]);
+
+  return (
+    <div className="flex flex-col items-center gap-2 pt-1">
+      <div className="relative">
+        <span
+          ref={ringRef}
+          aria-hidden
+          className={`mic-ring absolute inset-0 rounded-full ${recording ? "bg-danger/25" : "bg-voice/15"}`}
+        />
+        <button
+          onClick={onPress}
+          disabled={busy}
+          aria-label={label}
+          className={`relative flex size-20 items-center justify-center rounded-full text-white shadow-lg transition-[transform,background-color] active:scale-95 disabled:opacity-60 ${
+            recording ? "bg-danger shadow-danger/30" : "bg-voice shadow-voice/30"
+          }`}
+        >
+          {checking ? (
+            <span className="size-7 animate-spin rounded-full border-[3px] border-white/40 border-t-white" aria-hidden />
+          ) : recording ? (
+            <span className="size-6 rounded-md bg-white" aria-hidden />
+          ) : (
+            <svg viewBox="0 0 24 24" className="size-8" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <rect x="9" y="3" width="6" height="12" rx="3" fill="currentColor" />
+              <path d="M5 11a7 7 0 0 0 14 0M12 18v3" />
+            </svg>
+          )}
+        </button>
+      </div>
+      <span className="text-sm font-medium text-muted" aria-hidden>
+        {label}
+      </span>
+    </div>
   );
 }
