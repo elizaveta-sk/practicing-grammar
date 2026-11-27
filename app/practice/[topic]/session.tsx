@@ -9,7 +9,7 @@
 //     otherwise    -> next bank question
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { splitOptional, wordDiff } from "@/lib/diff";
+import { splitOptional, withoutOptional, wordDiff } from "@/lib/diff";
 import { useRecorder, type Recording } from "@/lib/use-recorder";
 import { useVoice } from "@/lib/voice-choice";
 
@@ -46,25 +46,33 @@ type Popup =
   | { kind: "meaning"; text: string; previous: Popup }
   | null;
 
-// The checker marks an optional start with brackets: "(If I could meet anyone,)
+// The checker marks the optional part with brackets: "(If I could meet anyone,)
 // I would meet…". Owner's design: no brackets or label on screen, just grey.
-function OptionalPart({ text }: { text: string }) {
+function OptionalPart({ text, trailing = false }: { text: string; trailing?: boolean }) {
   return (
     <>
       <span className="opacity-45" title="Optional: you can leave this part out">
         {text}
       </span>
-      <span className="sr-only"> (optional)</span>{" "}
+      <span className="sr-only"> (optional)</span>
+      {!trailing && " "}
     </>
   );
 }
 
 function Optional({ sentence }: { sentence: string }) {
-  const { optional, rest } = splitOptional(sentence);
+  const { optional, main, at, end } = splitOptional(sentence);
   return (
     <>
-      {optional && <OptionalPart text={optional} />}
-      {rest}
+      {at === "start" && <OptionalPart text={optional} />}
+      {main}
+      {at === "end" && (
+        <>
+          {" "}
+          <OptionalPart text={optional} trailing />
+          {end}
+        </>
+      )}
     </>
   );
 }
@@ -72,17 +80,24 @@ function Optional({ sentence }: { sentence: string }) {
 // The corrected answer under the learner's words, with the changed words
 // underlined and the optional start in grey.
 function Corrected({ transcript, sentence }: { transcript: string; sentence: string }) {
-  const { optional, rest } = splitOptional(sentence);
+  const { optional, main, at, end } = splitOptional(sentence);
+  const words = wordDiff(transcript, main).filter((p) => p.kind !== "removed");
   return (
     <>
-      {optional && <OptionalPart text={optional} />}
-      {wordDiff(transcript, rest)
-        .filter((p) => p.kind !== "removed")
-        .map((p, i) => (
-          <span key={i} className={p.kind === "added" ? "font-semibold underline" : ""}>
-            {p.word}{" "}
-          </span>
-        ))}
+      {at === "start" && <OptionalPart text={optional} />}
+      {words.map((p, i) => (
+        <span key={i} className={p.kind === "added" ? "font-semibold underline" : ""}>
+          {p.word}
+          {i < words.length - 1 || at !== "end" ? " " : ""}
+        </span>
+      ))}
+      {at === "end" && (
+        <>
+          {" "}
+          <OptionalPart text={optional} trailing />
+          {end}
+        </>
+      )}
     </>
   );
 }
@@ -179,7 +194,7 @@ export function Session({
   // Owner's rule: the grey optional start isn't part of the correction, so the
   // voice reads only the rest ("I will work out every day", not "If you pay…").
   function sayCorrection(sentence: string) {
-    return speak(splitOptional(sentence).rest);
+    return speak(withoutOptional(sentence));
   }
 
   /** Audio for a line of text, generated once and then cached. */

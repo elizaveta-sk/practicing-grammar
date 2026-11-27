@@ -153,15 +153,21 @@ export async function checkAnswer(input: CheckInput) {
   if (input.mode !== "main") result.nextQuestion = "";
   // Grammar isn't required in follow-ups, so "not used" there means fine.
   if (input.mode === "followup" && result.verdict === "not_used") result.verdict = "correct";
-  // The optional bracketed start is the owner's rule, so don't leave it to
-  // chance: if the learner gave no if-clause and the checker didn't add one,
-  // build it from the question.
-  if (input.mode === "main" && topic.optionalStart && !/\bif\b/i.test(input.answer)) {
+  // The optional if-part is the owner's rule, so don't leave it to chance: if
+  // the learner gave no if-clause and the checker didn't add one, build it
+  // from the question, in the question's order (owner: both orders are taught).
+  if (input.mode === "main" && topic.optionalIf && !/\bif\b/i.test(input.answer)) {
     const corrected = result.correctedAnswer.trim();
-    const start = topic.optionalStart(input.question);
-    if (start && corrected && !corrected.startsWith("(")) {
-      const rest = /^(I|I'[a-z]+)\b/.test(corrected) ? corrected : corrected[0].toLowerCase() + corrected.slice(1);
-      result.correctedAnswer = `(${start},) ${rest}`;
+    const clause = topic.optionalIf(input.question);
+    if (clause && corrected && !corrected.includes("(")) {
+      if (/^\s*if\b/i.test(input.question)) {
+        const rest = /^(I|I'[a-z]+)\b/.test(corrected) ? corrected : corrected[0].toLowerCase() + corrected.slice(1);
+        result.correctedAnswer = `(${clause},) ${rest}`;
+      } else {
+        const punct = corrected.match(/[.!?]+$/)?.[0] ?? ".";
+        const body = corrected.replace(/[.!?]+$/, "");
+        result.correctedAnswer = `${body} (${clause.charAt(0).toLowerCase()}${clause.slice(1)})${punct}`;
+      }
     }
   }
 

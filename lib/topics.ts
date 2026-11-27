@@ -29,10 +29,10 @@ export type Topic = {
    */
   modelStart?: (question: string, answer: string) => string;
   /**
-   * Builds the optional start shown in brackets, from the question, for when
-   * the checker leaves it out. Returns "" when the question doesn't allow it.
+   * Builds the optional if-part, from the question, for when the checker
+   * leaves it out. Returns "" when the question doesn't allow it.
    */
-  optionalStart?: (question: string) => string;
+  optionalIf?: (question: string) => string;
 };
 
 // Speaking as the learner: "you" -> "I"/"me", "your" -> "my", and "I" -> "you"
@@ -73,7 +73,7 @@ export const TOPICS: Record<string, Topic> = {
     rule:
       "Imaginary or unlikely situations in the present/future. Result clause: would/could/might + base verb " +
       "(\"I would buy\", \"I'd buy\", \"I would like to be\", \"it would be\"). Condition clause, if the learner " +
-      "includes one: if + past simple (\"if I won\", \"if I had\", \"if I were/was\"). A short answer with only the " +
+      "includes one: if + past simple (\"if I won\", \"if I had\", \"if I were/was\"), before or after the result: \"If I won, I would…\" and \"I would… if I won\" are both correct. A short answer with only the " +
       "result clause (\"I would buy a house.\") fully counts as correct use. The questions need \"would\": any " +
       "answer with a verb but without would/could/might in the result is incorrect. Mistakes AFTER a correct " +
       "\"would + verb\" are not target mistakes: \"I would like be a pilot\" is correct (the missing \"to\" is " +
@@ -99,12 +99,13 @@ export const TOPICS: Record<string, Topic> = {
     },
     // Owner's request: always show the whole pattern, with the if-clause marked optional.
     correctionStyle:
-      "If the learner left out the if-clause, start correctedAnswer with the if-clause in round brackets, built " +
-      "from the question, then their result clause: \"(If I could have any skill I wanted,) I would like to be the " +
-      "best at public speaking.\" The brackets mean it's optional, so this does NOT make the answer incorrect. " +
-      "If the learner said an if-clause themselves, keep it (corrected if needed) with no brackets.",
+      "If the learner left out the if-clause, add it in round brackets, built from the question, in the SAME " +
+      "place as in the question: at the start for \"If you…, what…?\" questions (\"(If I could have any job,) I " +
+      "would be a pilot.\"), at the end for \"…if you…?\" questions (\"I would go to the bank (if I were " +
+      "invisible for a day).\"). The brackets mean it's optional, so this does NOT make the answer incorrect. " +
+      "If the learner said an if-clause themselves, in either order, keep it (corrected if needed) with no brackets.",
     // Bank questions start "If you …, <question>": turn that into the learner's if-clause.
-    optionalStart: ifClauseFor,
+    optionalIf: ifClauseFor,
   },
 };
 
@@ -115,7 +116,7 @@ TOPICS["first-conditional"] = {
     "Real or likely situations in the future. Result clause: will/'ll + base verb (\"I will eat\", \"I'll call\"). " +
     "These also count as correct (owner's decision): be going to + verb (\"I'm going to call\"), might / may / can + " +
     "base verb (\"I might stay home\", \"I can go to the gym\"). Condition clause, if the learner includes one: " +
-    "if + present simple (\"if I'm hungry\", \"if it rains\", \"if my ex calls me\"). A short answer with only the " +
+    "if + present simple (\"if I'm hungry\", \"if it rains\", \"if my ex calls me\"), before or after the result: \"If it rains, I'll…\" and \"I'll… if it rains\" are both correct. A short answer with only the " +
     "result clause (\"I'll make pasta.\") fully counts as correct use. The questions need a future form: any answer " +
     "with a verb but without will / going to / might / may / can in the result is incorrect. Mistakes AFTER a " +
     "correct \"will + verb\" are not target mistakes: \"I'll go to shop\" is correct (the missing \"the\" is " +
@@ -134,11 +135,13 @@ TOPICS["first-conditional"] = {
     noRepeat: '"What will you do if you suddenly get a headache?" → "I\'ll take a pill."',
   },
   correctionStyle:
-    "If the learner left out the if-clause, start correctedAnswer with the if-clause in round brackets, built " +
-    "from the question and said by the learner, then their result clause: \"(If I am hungry when I get home " +
-    "tonight,) I'll make pasta.\" The brackets mean it's optional, so this does NOT make the answer incorrect. " +
-    "If the learner said an if-clause themselves, keep it (corrected if needed) with no brackets.",
-  optionalStart: ifClauseFor,
+    "If the learner left out the if-clause, add it in round brackets, built from the question and said by the " +
+    "learner, in the SAME place as in the question: at the end for \"What will you…if you…?\" questions (\"I'll " +
+    "make pasta (if I am hungry when I get home tonight).\"), at the start for \"If…, what will you…?\" questions " +
+    "(\"(If it is fantastic weather tomorrow,) I'll go to the beach.\"). The brackets mean it's optional, so this " +
+    "does NOT make the answer incorrect. If the learner said an if-clause themselves, in either order, keep it " +
+    "(corrected if needed) with no brackets.",
+  optionalIf: ifClauseFor,
 };
 
 TOPICS["present-perfect"] = {

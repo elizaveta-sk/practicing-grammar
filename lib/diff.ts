@@ -39,8 +39,33 @@ export function wordDiff(expected: string, actual: string): DiffPart[] {
   return parts;
 }
 
-/** Splits "(If I could…,) I would…" into the optional bracketed start and the rest. */
-export function splitOptional(sentence: string) {
-  const m = sentence.match(/^\s*\(([^)]*)\)\s*([\s\S]*)$/);
-  return m ? { optional: m[1].trim(), rest: m[2] } : { optional: "", rest: sentence };
+export type OptionalSplit = {
+  /** The optional words, without brackets ("If I could meet anyone," / "if I won the lottery"). */
+  optional: string;
+  /** The rest of the sentence: the part that has to be said. */
+  main: string;
+  /** Where the optional words go. */
+  at: "start" | "end" | null;
+  /** Final punctuation after an optional part at the end ("."). */
+  end: string;
+};
+
+/**
+ * The checker marks an optional if-part with round brackets, at the start or
+ * the end, matching the question's order:
+ *   "(If I could meet anyone,) I would meet Barack Obama."
+ *   "I would go to the bank (if I were invisible for a day)."
+ */
+export function splitOptional(sentence: string): OptionalSplit {
+  const first = sentence.match(/^\s*\(([^)]*)\)\s*([\s\S]*)$/);
+  if (first) return { optional: first[1].trim(), main: first[2], at: "start", end: "" };
+  const last = sentence.match(/^([\s\S]*?)\s*\(([^)]*)\)\s*([.!?]*)\s*$/);
+  if (last) return { optional: last[2].trim(), main: last[1], at: "end", end: last[3] };
+  return { optional: "", main: sentence, at: null, end: "" };
+}
+
+/** The sentence without its optional part, as the voice says it. */
+export function withoutOptional(sentence: string) {
+  const { main, at, end } = splitOptional(sentence);
+  return at === "end" ? main.replace(/[\s,]+$/, "") + (end || ".") : main;
 }

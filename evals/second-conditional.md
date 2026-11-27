@@ -77,3 +77,8 @@ Run it with `npm run eval:check`. Results are written to `evals/results/second-c
 | 64 | main | If you could be any fictional character, who would you be and why? | I would be Harry Potter because he can do magic. | correct | uses the word's meaning correctly; not a question |
 | 65 | main | If you were invisible for a day, what would you do? | What would I do? I would go to the bank. | correct | question inside the answer is not a meaning request |
 | 66 | followup | What would you wear to the party? | I wear a dress. | incorrect | same rule as first-conditional #32; correction must include "would wear" |
+| 67 | main | What would you do if you were invisible for a day? | I would go to the bank. | correct | question ends with "if": grey part at the end; correction must include "bank (if" |
+| 68 | main | What would you do if you were invisible for a day? | I would go to the bank if I were invisible. | correct | learner's own order is fine |
+| 69 | main | If you could have any job, what job would you like to have? | I would be a pilot if I could have any job. | correct | if at the end, though the question has it first: fine |
+| 70 | main | What would you do if you were invisible for a day? | I will go to the bank if I am invisible. | incorrect | order fine, tenses wrong; correction must include "would go" |
+| 71 | main | Who would you choose to meet if you could meet anyone, dead or alive? | I would meet my grandmother. | correct | correction must include "grandmother (if I could meet anyone |
