@@ -44,3 +44,4 @@ Run it with `npm run eval:check -- present-perfect`.
 | 34 | repeat | → Yes, I have. I met Tom Hanks in 2019. | Yes, I did. I met Tom Hanks in 2019. | incorrect |  |
 | 35 | main | Have you ever ridden a horse? | Pardon? | say_again |  |
 | 36 | main | Has anyone you know been a soldier? | What does soldier mean? | meaning | correction must include "soldier" |
+| 37 | followup | Have you ever worn a costume to a party? | Yes, I wear a costume last year. | incorrect | same rule: the question's verb in a wrong form |

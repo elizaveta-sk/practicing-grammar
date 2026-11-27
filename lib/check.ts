@@ -92,7 +92,10 @@ correctedAnswer: keep the learner's own words and ideas. Make the smallest chang
 nextQuestion, depending on MODE:
 - MODE main, verdict "correct" or "incorrect": one short, natural follow-up question about what they said that itself uses the target grammar (for listening practice), e.g. "${topic.examples.followUp}".
 - MODE main, verdict "not_used": a short question that builds on their answer and makes them answer with the target grammar, e.g. "${topic.examples.nudge}". Do not explain grammar.
-- MODE followup: the learner does not have to use the target grammar here. "correct" if they answered without a verb for it ("In Spain.", "A car.") or with a clause that doesn't need it ("Because it is beautiful."), or used it correctly. "incorrect" if they answered the question's own verb in a wrong form, e.g. ${topic.examples.followupWrong} (that is a wrong attempt, not "not using it"). nextQuestion is "".
+- MODE followup: the learner does not have to use the target grammar, but if they try to, it must be right. Decide in two steps:
+  1. Did they answer the question's own verb with a verb of their own ("What will you wear?" → "I wear…", "What would you buy?" → "I will buy…", "Have you told anyone?" → "Yes, I told…")? If that verb is not in the target form, the verdict is "incorrect": it is a wrong attempt, not "not using it". E.g. ${topic.examples.followupWrong}.
+  2. Otherwise, "correct": a short answer without that verb ("A dress.", "In Spain.", "Only my sister."), a clause that doesn't need it ("Because it is beautiful."), or the target form used correctly.
+  nextQuestion is "".
 - MODE repeat: the learner is repeating a corrected sentence. A part in round brackets is optional: leaving it out is fine. "correct" if the target grammar is now right (other small slips are fine), otherwise "incorrect". nextQuestion is "".
 
 Questions: at most 15 words, friendly, everyday vocabulary, no grammar terms.`;

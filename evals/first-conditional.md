@@ -37,3 +37,5 @@ Run it with `npm run eval:check -- first-conditional`.
 | 29 | main | What will you do if you suddenly get a headache? | Sorry, what? | say_again |  |
 | 30 | main | What will you do if you get a poor grade on your next English test? | What does grade mean? | meaning | correction must include "grade" |
 | 31 | main | What will you eat if you are hungry when you get home tonight? | I will eat, how do you say, гречка | help | Russian word; correction must include "buckwheat" |
+| 32 | followup | What will you wear to the party? | I wear dress | incorrect | from a real session (owner); correction must include "will wear" |
+| 33 | followup | What will you wear to the party? | A red dress. | correct | no verb: fine in a follow-up |

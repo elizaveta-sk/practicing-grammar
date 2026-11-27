@@ -76,3 +76,4 @@ Run it with `npm run eval:check`. Results are written to `evals/results/second-c
 | 63 | followup | Would you give the money back afterwards? | What does afterwards mean? | meaning | correction must include "afterwards" |
 | 64 | main | If you could be any fictional character, who would you be and why? | I would be Harry Potter because he can do magic. | correct | uses the word's meaning correctly; not a question |
 | 65 | main | If you were invisible for a day, what would you do? | What would I do? I would go to the bank. | correct | question inside the answer is not a meaning request |
+| 66 | followup | What would you wear to the party? | I wear a dress. | incorrect | same rule as first-conditional #32; correction must include "would wear" |
