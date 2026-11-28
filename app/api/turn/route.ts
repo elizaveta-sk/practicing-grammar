@@ -48,6 +48,7 @@ export async function POST(request: Request) {
         kind: result.verdict === "not_used" ? "nudge" : "followup",
         asked: question,
         answer: transcript,
+        corrected: result.verdict === "incorrect" ? result.correctedAnswer : undefined,
         proposed: result.nextQuestion,
       }).catch(() => null); // if the review fails, ask the original question
       if (review) result.nextQuestion = review.question;

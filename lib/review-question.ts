@@ -25,6 +25,8 @@ export type ReviewInput = {
   asked: string;
   /** What the learner said. */
   answer: string;
+  /** The answer with its mistakes fixed, when it had any: what the learner ends up saying. */
+  corrected?: string;
   /** The question the checker wants to ask next. */
   proposed: string;
 };
@@ -34,7 +36,7 @@ function systemPrompt(topicId: string) {
   return `You review one question that a friendly English speaking-practice app is about to ask an adult learner (B1–C1). The learner just answered a question; the app asks a short question next.
 
 A good question:
-- follows naturally from what the learner said, and is interesting to answer;
+- follows naturally from what the learner said, and is interesting to answer. When a CORRECTED ANSWER is given, the learner's answer had a grammar mistake and the corrected answer is what they meant: build on it, not on the wrong form. Stay inside the situation the question imagines: after "If you could work for any company for a week…?" → "I worked for Apple before." (corrected: "I would work for Apple…"), ask about the imagined week at Apple ("What would you do on your first day there?"), NOT "What would you do differently if you went back to Apple?";
 - is kind and positive. If the situation is stressful, embarrassing or upsetting (a fight, danger, illness, a break-up, a bad grade, losing a job), do not dig into the bad moment or how bad they would feel. Move it to a positive or practical ending: relaxing or feeling better afterwards, someone to talk to, something nice to do next. E.g. after "What will you do if a drunk guy challenges you to a fight?" → "I'll run away.", a good question is "How will you relax when you get home?", NOT "Run away and do what?" or "Will you be scared?";
 - makes sense and is not obvious or repetitive: NOT "Where will you lie down when you feel better?" (you lie down because you feel bad), and nothing the learner already answered;
 - is not too personal (no exact money, health details, intimate relationship details);
@@ -51,6 +53,7 @@ async function review(input: ReviewInput, extra = "") {
   const lines = [
     `QUESTION THE LEARNER ANSWERED: ${input.asked}`,
     `LEARNER SAID: ${input.answer}`,
+    ...(input.corrected ? [`CORRECTED ANSWER: ${input.corrected}`] : []),
     `PROPOSED ${input.kind === "nudge" ? "NUDGE (must make them answer with the target grammar)" : "FOLLOW-UP"} QUESTION: ${input.proposed}`,
   ];
   if (extra) lines.push(extra);
